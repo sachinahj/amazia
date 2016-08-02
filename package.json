@@ -4,11 +4,13 @@
   "description": "the new way to travel",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js --harmony --harmony_destructuring",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "sequelize"
+    "mysql": "2.11.1",
+    "orm": "3.1.0"
   }
 }
