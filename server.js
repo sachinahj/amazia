@@ -8,7 +8,6 @@ const run = () => {
   City.getAll(cities => {
     console.log("cities", cities);
     console.log("cities[0].name", cities[0].name);
-    console.log("cities[0].print", cities[0].print());
   });
 }
 

@@ -1,19 +1,18 @@
 'use strict'
 
 const Orm = require('orm');
+
 const DB = require('./db.js');
 
 class City {
+
+
   constructor(city) {
     this.id = city.id;
     this.name = city.name;
     this.state = city.state;
     this.country = city.country;
     this.last_updated = city.last_updated;
-  }
-
-  full() {
-    console.log(this.name, this.state, this.country);
   }
 
   static getDBModel(db) {
@@ -48,18 +47,10 @@ class City {
 
       cityDBModel.find({}, (err, cities) => {
         if (err) throw err;
-        console.log("=======");
-        console.log("cities before", cities);
         cities = cities.map(city => {
-          console.log("--------");
-          console.log("city", city);
           const cityClassModel = new this(city);
-          console.log("cityClassModel", cityClassModel);
-          console.log("--------");
           return cityClassModel;
         });
-        console.log("cities after", cities);
-        console.log("=======");
         callback(cities);
       });
     });
