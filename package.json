@@ -1,0 +1,14 @@
+{
+  "name": "amazia",
+  "version": "0.0.1",
+  "description": "the new way to travel",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sequelize"
+  }
+}
