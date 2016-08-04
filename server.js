@@ -2,13 +2,19 @@
 
 const City = require('./collections/city.js');
 const DB = require('./collections/db.js');
+const {Yelp, YelpBusiness} = require('./collections/yelp.js');
 
 const run = () => {
-  // City.recreateDBTable();
-  City.getAll(cities => {
-    console.log("cities", cities);
-    console.log("cities[0].name", cities[0].name);
+  Yelp.getBusinesses({
+    location: "Atlanta,GA",
+    sortBy: "rating",
+    offset: 0,
   });
+  // City.recreateDBTable();
+  // City.getAll(cities => {
+  //   console.log("cities", cities);
+  //   console.log("cities[0].name", cities[0].name);
+  // });
 }
 
 run();

@@ -1,6 +1,7 @@
 'use strict'
 
 const Orm = require("orm");
+const modts = require('orm-timestamps');
 
 const LocalConfig = require('../_config.json');
 
@@ -37,6 +38,16 @@ class DB {
         DB.getConnection(callback);
 
       } else {
+
+        db.use(modts, {
+          createdProperty: 'createdAt',
+          modifiedProperty: 'modifiedAt',
+          expireProperty: false,
+          dbtype: { type: 'date', time: true },
+          now: function() { return new Date(); },
+          expire: function() { var d = new Date(); return d.setMinutes(d.getMinutes() + 60); },
+          persist: true
+        });
 
         callback(err, db);
       }

@@ -6,13 +6,12 @@ const DB = require('./db.js');
 
 class City {
 
-
   constructor(city) {
     this.id = city.id;
     this.name = city.name;
     this.state = city.state;
     this.country = city.country;
-    this.last_updated = city.last_updated;
+    this.lastUpdatedYelpBusiness = city.lastUpdated;
   }
 
   static getDBModel(db) {
@@ -20,7 +19,9 @@ class City {
       name: String,
       state: String,
       country: String,
-      last_updated: Number
+      lastUpdated: Number,
+    }, {
+      timestamp: true,
     });
 
     return cityDBModel;
