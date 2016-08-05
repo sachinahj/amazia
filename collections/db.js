@@ -29,9 +29,11 @@ class DB {
 
     const url = getURL();
     const db = Orm.connect(url);
+
     db.on("connect", function (err, db) {
 
       if (err) {
+
         console.error("DB.getConnection error", err);
         db.off("connect");
         db = Orm.connect(url);
@@ -52,6 +54,22 @@ class DB {
         callback(err, db);
       }
     });
+  }
+
+  static recreateDBTables () {
+    const City = require('./city.js');
+    const {Yelp, YelpBusiness} = require('./yelp.js');
+
+    City.recreateDBTable(() => {
+      const atlanta = new City({
+        name: "Atlanta",
+        state: "GA",
+        country: "USA"
+      });
+
+      atlanta.upsert();
+    });
+    YelpBusiness.recreateDBTable();
   }
 }
 

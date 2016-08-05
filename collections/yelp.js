@@ -1,7 +1,6 @@
 'use strict'
 
 const Orm = require('orm');
-// const QS = require('querystring');
 const Request = require('request');
 
 const DB = require('./db.js');
@@ -62,6 +61,43 @@ class Yelp {
 class YelpBusiness extends Yelp {
   constructor(yelpBusiness) {
     super();
+  }
+
+  static getDBModel(db) {
+    const yelpBusinessDBModel = db.define("yelpBusiness", {
+      id: {type: 'serial', key: true},
+      cityId: {type: "text"},
+      yelpId: {type: "text"},
+      name: {type: "text"},
+      rating: {type: "number"},
+      reviewCount: {type: "number"},
+      price: {type: "number"},
+      locationCity: {type: "text"},
+      locationState: {type: "text"},
+      locationCountry: {type: "text"},
+      locationZipCode: {type: "text"},
+      coordinatesLatitude: {type: "text"},
+      coordinatesLongitude: {type: "text"},
+    }, {
+      timestamp: true,
+    });
+
+    return yelpBusinessDBModel;
+  }
+
+  static recreateDBTable(callback) {
+    DB.getConnection((err, db) => {
+      if (err) throw err;
+      const yelpBusinessDBModel = this.getDBModel(db);
+      yelpBusinessDBModel.drop(err => {
+        if (err) throw err;
+        yelpBusinessDBModel.sync(err => {
+          if (err) throw err;
+          console.log("done creating YelpBusiness tale!");
+          callback && callback();
+        });
+      });
+    });
   }
 }
 
