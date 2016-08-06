@@ -33,10 +33,10 @@ class YelpBusinessCategory extends Yelp {
   _save(yelpBusinessCategoryDBModel, resolve, reject) {
 
     yelpBusinessCategoryDBModel.one({
-      and: [{
+      or: [{
         id: this.id
       }, {
-        or: [{
+        and: [{
           yelpBusinessId: this.yelpBusinessId
         }, {
           yelpCategoryId: this.yelpCategoryId

@@ -130,15 +130,17 @@ class YelpBusiness extends Yelp {
                 });
               });
 
-              return originalPromise
+              return originalPromise;
             });
           });
         });
 
         originalPromise.then(() => {
-          if (1000 >= offset + 20) {
+          console.log("offset", offset);
+          if (999 > offset + 20) {
             return this.businessSearchForCity(city, sortBy, offset + 20);
           } else {
+            console.log("resolving");
             return resolve();
           }
         }).catch(reject);
@@ -183,7 +185,7 @@ class YelpBusiness extends Yelp {
             if (err) return reject(err);
 
             console.log("YelpBusiness | done creating YelpBusiness table!");
-            resolve();
+            return resolve();
           });
         });
       });
