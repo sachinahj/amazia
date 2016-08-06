@@ -1,6 +1,8 @@
 'use strict'
 
 const Request = require('request');
+var Rx = require('rx');
+
 
 const DB = require('../db');
 const LocalConfig = require('../../_config.json');
@@ -19,52 +21,23 @@ class YelpBusiness extends Yelp {
   }
 
   upsert() {
-
-    return new Promise((resolve, reject) => {
-
-      DB.getConnection().then(db => {
-        const yelpBusinessDBModel = this.constructor.getDBModel(db);
-        if (this.id || this.yelpIdOriginal) {
-          this._save(yelpBusinessDBModel, resolve, reject);
-        } else {
-          this._create(yelpBusinessDBModel, resolve, reject);
-        }
-      });
-    });
+    return DB.upsert(this, self => {
+      return self.id || self.yelpIdOriginal;
+    })();
   }
 
-  _save(yelpBusinessDBModel, resolve, reject) {
-
-    yelpBusinessDBModel.one({
+  static _save(self, yelpBusinessDBModel, resolve, reject) {
+    return DB.save(self, {
       or: [{
-        id: this.id
+        id: self.id
       }, {
-        yelpIdOriginal: this.yelpIdOriginal
+        yelpIdOriginal: self.yelpIdOriginal
       }]
-    }, (err, yelpBusiness) => {
-
-      if (err) return reject(err);
-      if (!yelpBusiness) return this._create(yelpBusinessDBModel, resolve, reject);
-
-      for (var key in this) {
-        yelpBusiness[key] = this[key];
-      }
-
-      yelpBusiness.save((err, results) => {
-        if (err) return reject(err);
-        console.log("YelpBusiness | done updating business");
-        resolve(results);
-      });
-    });
+    })(yelpBusinessDBModel, resolve, reject);
   }
 
-  _create(yelpBusinessDBModel, resolve, reject) {
-
-    yelpBusinessDBModel.create(this, (err, results) => {
-      if (err) return reject(err);
-      console.log("YelpBusiness | done creating business");
-      resolve(results);
-    });
+  static _create(self, yelpBusinessDBModel, resolve, reject) {
+    return DB.create(self)(yelpBusinessDBModel, resolve, reject);
   }
 
   static businessSearchForCity (city, sortBy, offset) {
@@ -81,6 +54,7 @@ class YelpBusiness extends Yelp {
         offset: offset,
 
       }).then((json) => {
+        console.log("json.businesses.length", json.businesses.length);
 
         json.businesses.forEach(businessRaw => {
 
@@ -193,5 +167,7 @@ class YelpBusiness extends Yelp {
   }
 }
 
+YelpBusiness.className = 'YelpBusiness';
 
 module.exports = YelpBusiness;
+

@@ -17,54 +17,27 @@ class YelpBusinessCategory extends Yelp {
   }
 
   upsert() {
-    return new Promise((resolve, reject) => {
-
-      DB.getConnection().then(db => {
-        const yelpBusinessCategoryDBModel = this.constructor.getDBModel(db);
-        if (this.id || (this.yelpBusinessId && this.yelpCategoryId)) {
-          this._save(yelpBusinessCategoryDBModel, resolve, reject);
-        } else {
-          this._create(yelpBusinessCategoryDBModel, resolve, reject);
-        }
-      });
-    });
+    return DB.upsert(this, self => {
+      return self.id || (self.yelpBusinessId && self.yelpCategoryId);
+    })();
   }
 
-  _save(yelpBusinessCategoryDBModel, resolve, reject) {
-
-    yelpBusinessCategoryDBModel.one({
+  static _save(self, yelpBusinessCategoryDBModel, resolve, reject) {
+    return DB.save(self, {
       or: [{
-        id: this.id
+        id: self.id
       }, {
         and: [{
-          yelpBusinessId: this.yelpBusinessId
+          yelpBusinessId: self.yelpBusinessId
         }, {
-          yelpCategoryId: this.yelpCategoryId
+          yelpCategoryId: self.yelpCategoryId
         }]
       }]
-    }, (err, yelpBusinessCategory) => {
-      if (err) return reject(err);
-      if (!yelpBusinessCategory) return this._create(yelpBusinessCategoryDBModel, resolve, reject);
-
-      for (var key in this) {
-        yelpBusinessCategory[key] = this[key];
-      }
-
-      yelpBusinessCategory.save((err, results) => {
-        if (err) return reject(err);
-        console.log("YelpBusinessCategory | done updating business");
-        resolve(results);
-      });
-    });
+    })(yelpBusinessCategoryDBModel, resolve, reject);
   }
 
-  _create(yelpBusinessCategoryDBModel, resolve, reject) {
-
-    yelpBusinessCategoryDBModel.create(this, (err, results) => {
-      if (err) return reject(err);
-      console.log("YelpBusinessCategory | done creating business");
-      resolve(results);
-    });
+  static _create(self, yelpBusinessCategoryDBModel, resolve, reject) {
+    return DB.create(self)(yelpBusinessCategoryDBModel, resolve, reject);
   }
 
   static getDBModel(db) {
@@ -101,5 +74,6 @@ class YelpBusinessCategory extends Yelp {
   }
 }
 
+YelpBusinessCategory.className = 'YelpBusinessCategory';
 
 module.exports = YelpBusinessCategory;

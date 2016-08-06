@@ -9,6 +9,56 @@ let _DBConnection = null;
 
 class DB {
 
+  static upsert (self, saveOrCreateFn) {
+
+    return function () {
+      return new Promise((resolve, reject) => {
+
+        DB.getConnection().then(db => {
+          const DBModel = self.constructor.getDBModel(db);
+          if (saveOrCreateFn(self)) {
+            self.constructor._save(self, DBModel, resolve, reject);
+          } else {
+            self.constructor._create(self, DBModel, resolve, reject);
+          }
+        });
+      });
+    }
+  }
+
+  static save (self, DBQuery) {
+
+    return (DBModel, resolve, reject) => {
+
+      DBModel.one(DBQuery, (err, row) => {
+        if (err) return reject(err);
+        if (!row) return self._create(DBModel, resolve, reject);
+
+        for (var key in self) {
+          row[key] = self[key];
+        }
+
+        row.save((err, results) => {
+          if (err) return reject(err);
+          console.log(self.constructor.className, "| done updating");
+          resolve(results);
+        });
+      });
+    }
+  }
+
+  static create (self) {
+
+    return  (DBModel, resolve, reject) => {
+
+      DBModel.create(self, (err, results) => {
+        if (err) return reject(err);
+        console.log(self.constructor.className, "| done creating ");
+        resolve(results);
+      });
+    }
+  }
+
   static getConnection(callback) {
 
     return new Promise((resolve, reject) => {

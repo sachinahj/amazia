@@ -17,52 +17,23 @@ class YelpCategory extends Yelp {
   }
 
   upsert() {
-
-    return new Promise((resolve, reject) => {
-
-      DB.getConnection().then(db => {
-        const yelpCategoryDBModel = this.constructor.getDBModel(db);
-        if (this.id || this.alias) {
-          this._save(yelpCategoryDBModel, resolve, reject);
-        } else {
-          this._create(yelpCategoryDBModel, resolve, reject);
-        }
-      });
-    });
+    return DB.upsert(this, self => {
+      return self.id || self.alias;
+    })();
   }
 
-  _save(yelpCategoryDBModel, resolve, reject) {
-
-    yelpCategoryDBModel.one({
+  static _save(self, yelpCategoryDBModel, resolve, reject) {
+    return DB.save(self, {
       or: [{
-        id: this.id
+        id: self.id
       }, {
-        alias: this.alias
+        alias: self.alias
       }]
-    }, (err, yelpCategory) => {
-
-      if (err) return reject(err);
-      if (!yelpCategory) return this._create(yelpCategoryDBModel, resolve, reject);
-
-      for (var key in this) {
-        yelpCategory[key] = this[key];
-      }
-
-      yelpCategory.save((err, results) => {
-        if (err) return reject(err);
-        console.log("YelpCategory | done updating business");
-        resolve(results);
-      });
-    });
+    })(yelpCategoryDBModel, resolve, reject);
   }
 
-  _create(yelpCategoryDBModel, resolve, reject) {
-
-    yelpCategoryDBModel.create(this, (err, results) => {
-      if (err) return reject(err);
-      console.log("YelpCategory | done creating business");
-      resolve(results);
-    });
+  static _create(self, yelpCategoryDBModel, resolve, reject) {
+    return DB.create(self)(yelpCategoryDBModel, resolve, reject);
   }
 
   static getDBModel(db) {
@@ -99,5 +70,6 @@ class YelpCategory extends Yelp {
   }
 }
 
+YelpCategory.className = 'YelpCategory';
 
 module.exports = YelpCategory;

@@ -2,12 +2,15 @@
 
 const Request = require('request');
 
+const DB = require('../db');
 const LocalConfig = require('../../_config.json');
 
 
 class Yelp {
 
-  constructor() {}
+  constructor() {
+    this._create
+  }
 
   static fetchBusinessSearch(query) {
 
