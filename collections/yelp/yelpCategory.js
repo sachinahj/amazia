@@ -17,23 +17,17 @@ class YelpCategory extends Yelp {
   }
 
   upsert() {
-    return DB.upsert(this, self => {
-      return self.id || self.alias;
-    })();
-  }
-
-  static _save(self, yelpCategoryDBModel, resolve, reject) {
-    return DB.save(self, {
-      or: [{
-        id: self.id
-      }, {
-        alias: self.alias
-      }]
-    })(yelpCategoryDBModel, resolve, reject);
-  }
-
-  static _create(self, yelpCategoryDBModel, resolve, reject) {
-    return DB.create(self)(yelpCategoryDBModel, resolve, reject);
+    return DB.upsert(
+      this,
+      (this.id || this.alias),
+      {
+        or: [{
+          id: this.id
+        }, {
+          alias: this.alias
+        }]
+      }
+    )();
   }
 
   static getDBModel(db) {

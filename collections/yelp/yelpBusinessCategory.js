@@ -17,28 +17,23 @@ class YelpBusinessCategory extends Yelp {
   }
 
   upsert() {
-    return DB.upsert(this, self => {
-      return self.id || (self.yelpBusinessId && self.yelpCategoryId);
-    })();
-  }
-
-  static _save(self, yelpBusinessCategoryDBModel, resolve, reject) {
-    return DB.save(self, {
-      or: [{
-        id: self.id
-      }, {
-        and: [{
-          yelpBusinessId: self.yelpBusinessId
+    return DB.upsert(
+      this,
+      (this.id || (this.yelpBusinessId && this.yelpCategoryId)),
+      {
+        or: [{
+          id: this.id
         }, {
-          yelpCategoryId: self.yelpCategoryId
+          and: [{
+            yelpBusinessId: this.yelpBusinessId
+          }, {
+            yelpCategoryId: this.yelpCategoryId
+          }]
         }]
-      }]
-    })(yelpBusinessCategoryDBModel, resolve, reject);
+      }
+    )();
   }
 
-  static _create(self, yelpBusinessCategoryDBModel, resolve, reject) {
-    return DB.create(self)(yelpBusinessCategoryDBModel, resolve, reject);
-  }
 
   static getDBModel(db) {
     const yelpBusinessCategoryDBModel = db.define("yelpBusinessCategory", {

@@ -21,23 +21,17 @@ class YelpBusiness extends Yelp {
   }
 
   upsert() {
-    return DB.upsert(this, self => {
-      return self.id || self.yelpIdOriginal;
-    })();
-  }
-
-  static _save(self, yelpBusinessDBModel, resolve, reject) {
-    return DB.save(self, {
-      or: [{
-        id: self.id
-      }, {
-        yelpIdOriginal: self.yelpIdOriginal
-      }]
-    })(yelpBusinessDBModel, resolve, reject);
-  }
-
-  static _create(self, yelpBusinessDBModel, resolve, reject) {
-    return DB.create(self)(yelpBusinessDBModel, resolve, reject);
+    return DB.upsert(
+      this,
+      (this.id || this.yelpIdOriginal),
+      {
+        or: [{
+          id: this.id
+        }, {
+          yelpIdOriginal: this.yelpIdOriginal
+        }]
+      }
+    )();
   }
 
   static businessSearchForCity (city, sortBy, offset) {

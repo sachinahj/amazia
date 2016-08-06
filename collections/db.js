@@ -9,28 +9,28 @@ let _DBConnection = null;
 
 class DB {
 
-  static upsert (self, saveOrCreateFn) {
+  static upsert (self, toSave, findQuery) {
 
-    return function () {
+    return () => {
       return new Promise((resolve, reject) => {
 
         DB.getConnection().then(db => {
           const DBModel = self.constructor.getDBModel(db);
-          if (saveOrCreateFn(self)) {
-            self.constructor._save(self, DBModel, resolve, reject);
+          if (toSave) {
+            this.save(self, findQuery)(DBModel, resolve, reject);
           } else {
-            self.constructor._create(self, DBModel, resolve, reject);
+            this.create(self)(DBModel, resolve, reject);
           }
         });
       });
     }
   }
 
-  static save (self, DBQuery) {
+  static save (self, findQuery) {
 
     return (DBModel, resolve, reject) => {
 
-      DBModel.one(DBQuery, (err, row) => {
+      DBModel.one(findQuery, (err, row) => {
         if (err) return reject(err);
         if (!row) return self._create(DBModel, resolve, reject);
 
