@@ -1,26 +1,22 @@
 'use strict'
 
-const City = require('./collections/city.js');
-const DB = require('./collections/db.js');
-const {Yelp, YelpBusiness} = require('./collections/yelp.js');
+const City = require('./collections/city');
+const DB = require('./collections/db');
+const {Yelp, YelpBusiness, YelpBusinessCategory, YelpCategory} = require('./collections/yelp');
 
 const run = () => {
 
-  DB.recreateDBTables();
-  // YelpBusiness.recreateDBTable();
-  // City.recreateDBTable();
 
-  // City.findLastUpdatedYelpBusiness(city => {
-  //   console.log("city", city);
+  City.findLastUpdatedYelpBusiness().then(city => {
+    console.log("city", city);
 
-  //   Yelp.getBusinesses({
-  //     location: `${city.name},${city.state}`,
-  //     sortBy: "rating",
-  //     offset: 0,
-  //   });
-  // });
+    YelpBusiness.businessSearchForCity(city, 'rating', 0).then(() => {
+      console.log("done done done done");
+    }).catch(err => console.log("wtf inside error", err));;
+  }).catch(err => console.log("wtf outside error", err));
 }
 
+// DB.recreateDBTables();
 run();
 
 

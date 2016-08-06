@@ -1,75 +1,107 @@
 'use strict'
 
-const Orm = require("orm");
-const modts = require('orm-timestamps');
+const Orm = require('orm');
+const Modts = require('orm-timestamps');
 
 const LocalConfig = require('../_config.json');
+
+let _DBConnection = null;
 
 class DB {
 
   static getConnection(callback) {
 
-    const getURL = (whichDb = 'main') => {
-      const databaseInfo = LocalConfig.database[whichDb];
-      if (!databaseInfo) {
-        throw `no database key for ${whichDb}`
+    return new Promise((resolve, reject) => {
+
+      const getURL = (whichDb = 'main') => {
+        const databaseInfo = LocalConfig.database[whichDb];
+        if (!databaseInfo) {
+          throw `no database key for ${whichDb}`
+        }
+
+        const {
+          host,
+          port,
+          username,
+          password,
+          database
+        } = databaseInfo;
+
+        const url = `mysql://${username}:${password}@${host}:${port}/${database}?pool=true`
+        return url;
+      };
+
+      const url = getURL();
+
+      if (_DBConnection) {
+        return resolve(_DBConnection);
       }
 
-      const {
-        host,
-        port,
-        username,
-        password,
-        database
-      } = databaseInfo;
+      Orm.connect(url).on("connect", function (err, db) {
 
-      const url = `mysql://${username}:${password}@${host}:${port}/${database}?pool=true`
-      return url;
-    };
+        if (err) {
 
-    const url = getURL();
-    const db = Orm.connect(url);
+          _DBConnection = null;
+          DB.getConnection(callback);
 
-    db.on("connect", function (err, db) {
+        } else {
 
-      if (err) {
+          db.use(Modts, {
+            createdProperty: 'createdAt',
+            modifiedProperty: 'modifiedAt',
+            expireProperty: false,
+            dbtype: { type: 'date', time: true },
+            now: function() { return new Date(); },
+            expire: function() { var d = new Date(); return d.setMinutes(d.getMinutes() + 60); },
+            persist: true
+          });
 
-        console.error("DB.getConnection error", err);
-        db.off("connect");
-        db = Orm.connect(url);
-        DB.getConnection(callback);
+          _DBConnection = db;
 
-      } else {
-
-        db.use(modts, {
-          createdProperty: 'createdAt',
-          modifiedProperty: 'modifiedAt',
-          expireProperty: false,
-          dbtype: { type: 'date', time: true },
-          now: function() { return new Date(); },
-          expire: function() { var d = new Date(); return d.setMinutes(d.getMinutes() + 60); },
-          persist: true
-        });
-
-        callback(err, db);
-      }
+          resolve(db);
+        }
+      });
     });
   }
 
   static recreateDBTables () {
-    const City = require('./city.js');
-    const {Yelp, YelpBusiness} = require('./yelp.js');
+    const City = require('./city');
+    const {Yelp, YelpBusiness, YelpCategory, YelpBusinessCategory} = require('./yelp');
 
-    City.recreateDBTable(() => {
-      const atlanta = new City({
-        name: "Atlanta",
-        state: "GA",
-        country: "USA"
-      });
-
-      atlanta.upsert();
+    const atlanta = new City({
+      name: "Atlanta",
+      state: "GA",
+      country: "USA"
     });
-    YelpBusiness.recreateDBTable();
+
+    const miami = new City({
+      name: "Miami",
+      state: "FL",
+      country: "USA"
+    });
+
+    City.recreateDBTable()
+      .then(function () {
+        return YelpBusiness.recreateDBTable();
+      })
+      .then(function () {
+        return YelpCategory.recreateDBTable();
+      })
+      .then(function () {
+        return YelpBusinessCategory.recreateDBTable();
+      })
+      .then(function () {
+        return atlanta.upsert();
+      })
+      .then(function () {
+        return miami.upsert();
+      })
+      .then(function () {
+        console.log("done bitches");
+      })
+      .catch((reason) => {
+        console.error("DB.recreateDBTables | reason", reason);
+      });
   }
 }
 
