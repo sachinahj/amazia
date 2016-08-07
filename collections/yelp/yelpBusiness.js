@@ -88,8 +88,8 @@ class YelpBusiness extends Yelp {
                   return category.upsert().then((categoryRow) => {
 
                     const businessCategoryData = {
-                      yelpBusinessId: businessRow.id,
-                      yelpCategoryId: categoryRow.id,
+                      businessId: businessRow.id,
+                      categoryId: categoryRow.id,
                     }
 
                     const businessCategory = new YelpBusinessCategory(businessCategoryData);

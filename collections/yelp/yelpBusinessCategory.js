@@ -19,15 +19,15 @@ class YelpBusinessCategory extends Yelp {
   upsert() {
     return DB.upsert(
       this,
-      (this.id || (this.yelpBusinessId && this.yelpCategoryId)),
+      (this.id || (this.businessId && this.categoryId)),
       {
         or: [{
           id: this.id
         }, {
           and: [{
-            yelpBusinessId: this.yelpBusinessId
+            businessId: this.businessId
           }, {
-            yelpCategoryId: this.yelpCategoryId
+            categoryId: this.categoryId
           }]
         }]
       }
@@ -38,8 +38,8 @@ class YelpBusinessCategory extends Yelp {
   static getDBModel(db) {
     const yelpBusinessCategoryDBModel = db.define("yelpBusinessCategory", {
       id: {type: 'serial', key: true},
-      yelpBusinessId: {type: "number"},
-      yelpCategoryId: {type: "number"},
+      businessId: {type: "number"},
+      categoryId: {type: "number"},
     }, {
       timestamp: true,
     });
