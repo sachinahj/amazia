@@ -32,7 +32,7 @@ class DB {
 
       DBModel.one(findQuery, (err, row) => {
         if (err) return reject(err);
-        if (!row) return self._create(DBModel, resolve, reject);
+        if (!row) return this.create(self)(DBModel, resolve, reject);
 
         for (var key in self) {
           row[key] = self[key];
