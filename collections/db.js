@@ -34,14 +34,19 @@ class DB {
         if (err) return reject(err);
         if (!row) return this.create(self)(DBModel, resolve, reject);
 
-        for (var key in self) {
+        for (let key in self) {
           row[key] = self[key];
         }
 
         row.save((err, results) => {
           if (err) return reject(err);
-          console.log(self.constructor.className, "| done updating");
-          resolve(results);
+
+          for (let key in results) {
+            self[key] = results[key];
+          }
+
+          console.log(self.constructor.className, "| done updating", self[self.constructor.displayProperty]);
+          resolve();
         });
       });
     }
@@ -53,8 +58,13 @@ class DB {
 
       DBModel.create(self, (err, results) => {
         if (err) return reject(err);
-        console.log(self.constructor.className, "| done creating ");
-        resolve(results);
+
+        for (let key in results) {
+          self[key] = results[key];
+        }
+
+        console.log(self.constructor.className, "| done creating ", self[self.constructor.displayProperty]);
+        resolve();
       });
     }
   }

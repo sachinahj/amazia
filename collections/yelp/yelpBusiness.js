@@ -1,5 +1,6 @@
 'use strict'
 
+var Clone = require('clone');
 const Request = require('request');
 var Rx = require('rx');
 
@@ -37,7 +38,12 @@ class YelpBusiness extends Yelp {
   static businessSearchForCity (city, sortBy, offset) {
     console.log("businessSearchForCity", offset);
 
+
     return new Promise((resolve, reject) => {
+
+      const businessSubject = new Rx.Subject();
+      const categorySubject = new Rx.Subject();
+      const businessCategorySubject = new Rx.Subject();
 
       let originalPromise = Promise.resolve(true);
 
@@ -49,6 +55,8 @@ class YelpBusiness extends Yelp {
 
       }).then((json) => {
         console.log("json.businesses.length", json.businesses.length);
+
+        // json.businesses = [json.businesses[2]];
 
         json.businesses.forEach(businessRaw => {
 
@@ -70,50 +78,86 @@ class YelpBusiness extends Yelp {
             coordinatesLongitude: businessRaw.coordinates.longitude,
           };
 
-          const business = new this(businessData);
-          originalPromise = originalPromise.then(() => {
-            return business.upsert().then((businessRow) => {
+          const business = new YelpBusiness(businessData);
 
-              let originalPromise = Promise.resolve(true);
+          const businessInfo = {
+            business,
+            businessRaw,
+          }
 
-              businessRaw.categories.forEach(categoryRaw => {
-
-                const categoryData = {
-                  alias: categoryRaw.alias,
-                  title: categoryRaw.title,
-                };
-
-                const category = new YelpCategory(categoryData);
-                originalPromise = originalPromise.then(() => {
-                  return category.upsert().then((categoryRow) => {
-
-                    const businessCategoryData = {
-                      businessId: businessRow.id,
-                      categoryId: categoryRow.id,
-                    }
-
-                    const businessCategory = new YelpBusinessCategory(businessCategoryData);
-                    return businessCategory.upsert();
-                  });
-                });
-              });
-
-              return originalPromise;
-            });
-          });
+          businessSubject.onNext(businessInfo);
         });
 
-        originalPromise.then(() => {
-          console.log("offset", offset);
-          if (999 > offset + 20) {
-            return this.businessSearchForCity(city, sortBy, offset + 20);
-          } else {
-            console.log("resolving");
-            return resolve();
-          }
-        }).catch(reject);
+        businessSubject.onCompleted();
+
+
+        // originalPromise.then(() => {
+        //   console.log("offset", offset);
+        //   if (999 > offset + 20) {
+        //     return this.businessSearchForCity(city, sortBy, offset + 20);
+        //   } else {
+        //     console.log("resolving");
+        //     return resolve();
+        //   }
+        // }).catch(reject);
 
       }).catch(reject);
+
+      businessSubject.subscribe(
+        (businessInfo) => {
+          businessInfo = Clone(businessInfo);
+          businessInfo.business.upsert().then(() => {
+            businessInfo.businessRaw.categories.forEach(categoryRaw => {
+              const categoryData = {
+                alias: categoryRaw.alias,
+                title: categoryRaw.title,
+              };
+              const category = new YelpCategory(categoryData);
+              businessInfo.category = category;
+              categorySubject.onNext(businessInfo);
+            });
+          });
+        },
+        (err) => {
+          console.log("businessSubject err");
+        },
+        () => {
+          console.log("businessSubject completed");
+        }
+      );
+
+      categorySubject.subscribe(
+        (businessInfo) => {
+          businessInfo = Clone(businessInfo);
+          businessInfo.category.upsert().then(() => {
+            const businessCategoryData = {
+              businessId: businessInfo.business.id,
+              categoryId: businessInfo.category.id,
+            }
+            const businessCategory = new YelpBusinessCategory(businessCategoryData);
+            businessInfo.businessCategory = businessCategory;
+            businessCategorySubject.onNext(businessInfo);
+          });
+        },
+        (err) => {
+          console.log("categorySubject err");
+        },
+        () => {
+          console.log("categorySubject completed");
+        }
+      );
+
+      businessCategorySubject.subscribe(
+          (businessInfo) => {
+            businessInfo.businessCategory.upsert().then(() => {});
+          },
+          (err) => {
+            console.log("businessCategorySubject err");
+          },
+          () => {
+            console.log("businessCategorySubject completed");
+          }
+      );
     });
   }
 
@@ -162,6 +206,7 @@ class YelpBusiness extends Yelp {
 }
 
 YelpBusiness.className = 'YelpBusiness';
+YelpBusiness.displayProperty = 'yelpIdOriginal';
 
 module.exports = YelpBusiness;
 

@@ -7,7 +7,7 @@ const DB = require('./db.js');
 class City {
 
   constructor(city) {
-    for (var key in city) {
+    for (let key in city) {
       this[key] = city[key]
     }
   }

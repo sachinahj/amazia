@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "clone": "^1.0.2",
     "mysql": "^2.11.1",
     "orm": "^3.1.0",
     "orm-timestamps": "^0.5.2",

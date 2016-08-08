@@ -11,7 +11,7 @@ class YelpBusinessCategory extends Yelp {
   constructor(yelpBusinessCategory) {
     super();
 
-    for (var key in yelpBusinessCategory) {
+    for (let key in yelpBusinessCategory) {
       this[key] = yelpBusinessCategory[key]
     }
   }
@@ -70,5 +70,6 @@ class YelpBusinessCategory extends Yelp {
 }
 
 YelpBusinessCategory.className = 'YelpBusinessCategory';
+YelpBusinessCategory.displayProperty = 'id';
 
 module.exports = YelpBusinessCategory;

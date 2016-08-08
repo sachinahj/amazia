@@ -9,7 +9,6 @@ const LocalConfig = require('../../_config.json');
 class Yelp {
 
   constructor() {
-    this._create
   }
 
   static fetchBusinessSearch(query) {
