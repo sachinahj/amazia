@@ -16,8 +16,8 @@ class YelpBusinessCategory extends Yelp {
     }
   }
 
-  upsert() {
-    return DB.upsert(
+  upsert(callback) {
+    DB.upsert(
       this,
       (this.id || (this.businessId && this.categoryId)),
       {
@@ -30,8 +30,9 @@ class YelpBusinessCategory extends Yelp {
             categoryId: this.categoryId
           }]
         }]
-      }
-    )();
+      },
+      callback
+    );
   }
 
 
@@ -47,22 +48,18 @@ class YelpBusinessCategory extends Yelp {
     return yelpBusinessCategoryDBModel;
   }
 
-  static recreateDBTable() {
+  static recreateDBTable(callback) {
+    DB.getConnection((err, db) => {
+      const yelpBusinessCategoryDBModel = this.getDBModel(db);
 
-    return new Promise((resolve, reject) => {
+      yelpBusinessCategoryDBModel.drop(err => {
+        if (err) return callback && callback(err, null);
 
-      DB.getConnection().then(db => {
-        const yelpBusinessCategoryDBModel = this.getDBModel(db);
+        yelpBusinessCategoryDBModel.sync(err => {
+          if (err) return callback && callback(err, null);
 
-        yelpBusinessCategoryDBModel.drop(err => {
-          if (err) return reject(err);
-
-          yelpBusinessCategoryDBModel.sync(err => {
-            if (err) return reject(err);
-
-            console.log("YelpBusinessCategory | done creating YelpBusinessCategory table!");
-            resolve();
-          });
+          console.log("YelpBusinessCategory | done creating YelpBusinessCategory table!");
+          return callback && callback(null);
         });
       });
     });

@@ -16,8 +16,8 @@ class YelpCategory extends Yelp {
     }
   }
 
-  upsert() {
-    return DB.upsert(
+  upsert(callback) {
+    DB.upsert(
       this,
       (this.id || this.alias),
       {
@@ -26,8 +26,9 @@ class YelpCategory extends Yelp {
         }, {
           alias: this.alias
         }]
-      }
-    )();
+      },
+      callback
+    );
   }
 
   static getDBModel(db) {
@@ -42,22 +43,18 @@ class YelpCategory extends Yelp {
     return yelpCategoryDBModel;
   }
 
-  static recreateDBTable() {
+  static recreateDBTable(callback) {
+    DB.getConnection((err, db) => {
+      const yelpCategoryDBModel = this.getDBModel(db);
 
-    return new Promise((resolve, reject) => {
+      yelpCategoryDBModel.drop(err => {
+        if (err) return callback && callback(err, null);
 
-      DB.getConnection().then(db => {
-        const yelpCategoryDBModel = this.getDBModel(db);
+        yelpCategoryDBModel.sync(err => {
+          if (err) return callback && callback(err, null);
 
-        yelpCategoryDBModel.drop(err => {
-          if (err) return reject(err);
-
-          yelpCategoryDBModel.sync(err => {
-            if (err) return reject(err);
-
-            console.log("YelpCategory | done creating YelpCategory table!");
-            resolve();
-          });
+          console.log("YelpCategory | done creating YelpCategory table!");
+          return callback && callback(null);
         });
       });
     });

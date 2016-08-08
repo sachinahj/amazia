@@ -8,56 +8,51 @@ const LocalConfig = require('../../_config.json');
 
 class Yelp {
 
-  constructor() {
-  }
+  constructor() {}
 
-  static fetchBusinessSearch(query) {
+  static fetchBusinessSearch(params, callback) {
 
-    return new Promise((resolve, reject) => {
-      const apiSlug = 'businesses/search'
-      const {
-        location,
-        sortBy,
-        offset,
-      } = query;
+    const apiSlug = 'businesses/search'
+    const {
+      location,
+      sortBy,
+      offset,
+    } = params;
 
-      const url = `${LocalConfig.dataProviders.yelp.baseUrl}/${apiSlug}`;
-      const qs = {
-        location,
-        sort_by: sortBy,
-        offset,
-      };
+    const url = `${LocalConfig.dataProviders.yelp.baseUrl}/${apiSlug}`;
+    const qs = {
+      location,
+      sort_by: sortBy,
+      offset,
+    };
 
-      const options = {
-        method: 'GET',
-        url: url,
-        qs: qs,
-        headers: {
-          'Authorization': `Bearer ${LocalConfig.dataProviders.yelp.accessToken}`
-        }
-      };
+    const options = {
+      method: 'GET',
+      url: url,
+      qs: qs,
+      headers: {
+        'Authorization': `Bearer ${LocalConfig.dataProviders.yelp.accessToken}`
+      }
+    };
 
-      const callback = (err, response, body) => {
-        if (err) return reject(err);
+    const requestCallback = (err, response, body) => {
+      if (err) return callback && callback(err, null);
 
-        if (response.statusCode == 200) {
-          var info = JSON.parse(body);
-
-          try {
-            const json = JSON.parse(body);
-            resolve(json);
-          } catch (err) {
-            reject(err);
-          }
+      if (response.statusCode == 200) {
+        try {
+          const json = JSON.parse(body);
+          console.log("here");
+          return callback && callback(null, json);
+        } catch (err) {
+          console.log("there", err);
+          return callback && callback(err, null);
         }
       }
+    }
 
-      Request(options, callback);
-    });
+    Request(options, requestCallback);
 
   }
-
-  _authenticate() {}
 }
 
 module.exports = Yelp;

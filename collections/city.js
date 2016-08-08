@@ -12,29 +12,25 @@ class City {
     }
   }
 
-  upsert() {
-
-    return new Promise((resolve, reject) => {
-      DB.getConnection().then(db => {
-        const cityDBModel = this.constructor.getDBModel(db);
-        if (this.id) {
-        } else {
-          this._create(cityDBModel, resolve, reject);
-        }
-      });
-    });
-  }
-
-  _save(cityDBModel, resolve, reject) {
-
-  }
-
-  _create(cityDBModel, resolve, reject) {
-    cityDBModel.create(this, (err, results) => {
-      if (err) return reject(err);
-      console.log("City | done creating city");
-      resolve();
-    });
+  upsert(callback) {
+    DB.upsert(
+      this,
+      (this.id || (this.name && this.state && this.country)),
+      {
+        or: [{
+          id: this.id
+        }, {
+          and: [{
+            name: this.name
+          }, {
+            state: this.state
+          }, {
+            country: this.country
+          }]
+        }]
+      },
+      callback
+    );
   }
 
   static getDBModel(db) {
@@ -52,40 +48,39 @@ class City {
   }
 
   static recreateDBTable(callback) {
+    DB.getConnection((err, db) => {
+      if (err) return callback && callback(err, null);
 
-    return new Promise((resolve, reject) => {
+      const cityDBModel = this.getDBModel(db);
 
-      DB.getConnection().then(db => {
-        const cityDBModel = this.getDBModel(db);
+      cityDBModel.drop(err => {
+        if (err) return callback && callback(err, null);
 
-        cityDBModel.drop(err => {
-          if (err) return reject(err);
+        cityDBModel.sync(err => {
+          if (err) return callback && callback(err, null);
 
-          cityDBModel.sync(err => {
-            if (err) return reject(err);
-
-            console.log("City | done creating City table!");
-            resolve();
-          });
+          console.log("City | done creating City table!");
+          return callback && callback(null);
         });
       });
     });
   }
 
-  static findLastUpdatedYelpBusiness() {
-    return new Promise((resolve, reject) => {
-      DB.getConnection().then(db => {
-        const cityDBModel = this.getDBModel(db);
+  static findLastUpdatedYelpBusiness(callback) {
+    DB.getConnection((err, db) => {
+      if (err) return callback && callback(err, null);
 
-        cityDBModel.find({}).order("lastUpdatedYelpBusiness").all((err, cities) => {
-          if (err) return reject(err);
+      const cityDBModel = this.getDBModel(db);
 
-          let city = cities[0];
-          if (city) {
-            city = new this(city);
-          }
-          resolve(city);
-        });
+      cityDBModel.find({}).order("lastUpdatedYelpBusiness").all((err, cities) => {
+        if (err) return callback && callback(err, null);
+
+        let city = cities[0];
+        if (city) {
+          city = new this(city);
+        }
+
+        return callback && callback(null, city);
       });
     });
   }

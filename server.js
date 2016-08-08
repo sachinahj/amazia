@@ -7,17 +7,22 @@ const {Yelp, YelpBusiness, YelpBusinessCategory, YelpCategory} = require('./coll
 const run = () => {
 
 
-  City.findLastUpdatedYelpBusiness().then(city => {
+  City.findLastUpdatedYelpBusiness(function (err, city) {
+    if (err) console.log("server | City.findLastUpdatedYelpBusiness", err);
     console.log("city", city);
 
-    YelpBusiness.businessSearchForCity(city, 'rating', 0).then(() => {
-      console.log("done done done done");
-    }).catch(err => console.log("wtf inside error", err));;
-  }).catch(err => console.log("wtf outside error", err));
+    YelpBusiness.businessSearchForCity(
+    city,
+    {
+      location: `${city.name},${city.state}`,
+      sortBy: 'rating',
+      offset: 0,
+    });
+  });
 }
 
-// DB.recreateDBTables();
-run();
+DB.recreateDBTables();
+// run();
 
 
 
