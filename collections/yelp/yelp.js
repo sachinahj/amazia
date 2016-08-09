@@ -13,23 +13,12 @@ class Yelp {
   static fetchBusinessSearch(params, callback) {
 
     const apiSlug = 'businesses/search'
-    const {
-      location,
-      sortBy,
-      offset,
-    } = params;
-
     const url = `${LocalConfig.dataProviders.yelp.baseUrl}/${apiSlug}`;
-    const qs = {
-      location,
-      sort_by: sortBy,
-      offset,
-    };
 
     const options = {
       method: 'GET',
       url: url,
-      qs: qs,
+      qs: params,
       headers: {
         'Authorization': `Bearer ${LocalConfig.dataProviders.yelp.accessToken}`
       }
@@ -39,14 +28,16 @@ class Yelp {
       if (err) return callback && callback(err, null);
 
       if (response.statusCode == 200) {
+        let json;
+
         try {
-          const json = JSON.parse(body);
-          console.log("here");
-          return callback && callback(null, json);
+          json = JSON.parse(body);
         } catch (err) {
-          console.log("there", err);
-          return callback && callback(err, null);
+          json = {
+            businesses: []
+          };
         }
+        return callback && callback(null, json);
       }
     }
 

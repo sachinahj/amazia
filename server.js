@@ -15,14 +15,15 @@ const run = () => {
     city,
     {
       location: `${city.name},${city.state}`,
-      sortBy: 'rating',
+      sort_by: 'rating',
       offset: 0,
+      limit: 50,
     });
   });
 }
 
-DB.recreateDBTables();
-// run();
+// DB.recreateDBTables();
+run();
 
 
 

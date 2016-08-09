@@ -14,9 +14,9 @@ class DB {
     DB.getConnection((err, db) => {
       const DBModel = self.constructor.getDBModel(db);
       if (toSave) {
-        this.save(self, findQuery, DBModel, callback);
+        DB.save(self, findQuery, DBModel, callback);
       } else {
-        this.create(self, DBModel, callback);
+        DB.create(self, DBModel, callback);
       }
     });
   }
@@ -24,7 +24,7 @@ class DB {
   static save (self, findQuery, DBModel, callback) {
     DBModel.one(findQuery, (err, row) => {
       if (err) return callback && callback(err, null);
-      if (!row) return this.create(self, DBModel, callback);
+      if (!row) return DB.create(self, DBModel, callback);
 
       for (let key in self) {
         row[key] = self[key];

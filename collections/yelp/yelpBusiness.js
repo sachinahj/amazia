@@ -42,12 +42,15 @@ class YelpBusiness extends Yelp {
     const businessCategorySubject = new Rx.Subject();
 
     super.fetchBusinessSearch(params, function (err, json) {
-      if (err) callback && callback(err, null);
+      if (err) console.error("fetchBusinessSearch err", err);
+      if (err) return callback && callback(err, null);
       console.log("json.businesses.length", json.businesses.length);
 
-      // json.businesses = [json.businesses[2]];
+      const last = json.businesses[json.businesses.length - 1];
+      console.log("last", last);
+      console.log("last.categories", last.categories);
 
-      json.businesses.forEach(businessRaw => {
+      json.businesses.forEach((businessRaw, idx, array) => {
 
         let price = businessRaw.price;
         price = price ? price.length : null;
@@ -74,48 +77,53 @@ class YelpBusiness extends Yelp {
           businessRaw,
         }
 
+        if (idx === array.length - 1) {
+          business.isLastInArray = true;
+        }
+
         businessSubject.onNext(businessInfo);
+
+        if (idx === array.length - 1) {
+          businessSubject.onCompleted();
+        }
+
       });
-
-      businessSubject.onCompleted();
-
-
-      // originalPromise.then(() => {
-      //   console.log("offset", offset);
-      //   if (999 > offset + 20) {
-      //     return this.businessSearchForCity(city, sortBy, offset + 20);
-      //   } else {
-      //     console.log("resolving");
-      //     return resolve();
-      //   }
-      // }).catch(reject);
-
     });
 
-    businessSubject.subscribe(
+    businessSubject.forEach(
       (businessInfo) => {
         businessInfo = Clone(businessInfo);
         businessInfo.business.upsert(() => {
-          businessInfo.businessRaw.categories.forEach(categoryRaw => {
+          businessInfo.businessRaw.categories.forEach((categoryRaw, idx, array) => {
             const categoryData = {
               alias: categoryRaw.alias,
               title: categoryRaw.title,
             };
+
             const category = new YelpCategory(categoryData);
             businessInfo.category = category;
+
+            if (
+              businessInfo.business.isLastInArray &&
+              idx === array.length - 1
+            ) {
+              businessInfo.category.isLastInArray = true;
+            }
+
             categorySubject.onNext(businessInfo);
+
+            if (
+              businessInfo.business.isLastInArray &&
+              idx === array.length - 1
+            ) {
+              categorySubject.onCompleted();
+            }
           });
         });
-      },
-      (err) => {
-        console.log("businessSubject err");
-      },
-      () => {
-        console.log("businessSubject completed");
       }
     );
 
-    categorySubject.subscribe(
+    categorySubject.forEach(
       (businessInfo) => {
         businessInfo = Clone(businessInfo);
         businessInfo.category.upsert(() => {
@@ -123,29 +131,38 @@ class YelpBusiness extends Yelp {
             businessId: businessInfo.business.id,
             categoryId: businessInfo.category.id,
           }
+
           const businessCategory = new YelpBusinessCategory(businessCategoryData);
           businessInfo.businessCategory = businessCategory;
+
           businessCategorySubject.onNext(businessInfo);
         });
-      },
-      (err) => {
-        console.log("categorySubject err");
-      },
-      () => {
-        console.log("categorySubject completed");
       }
     );
 
-    businessCategorySubject.subscribe(
-        (businessInfo) => {
-          businessInfo.businessCategory.upsert(() => {});
-        },
-        (err) => {
-          console.log("businessCategorySubject err");
-        },
-        () => {
-          console.log("businessCategorySubject completed");
-        }
+    businessCategorySubject.forEach(
+      (businessInfo) => {
+        businessInfo.businessCategory.upsert(() => {
+          if (
+            businessInfo.business.isLastInArray &&
+            businessInfo.category.isLastInArray
+          ) {
+            businessCategorySubject.onCompleted();
+            businessSubject.dispose();
+            categorySubject.dispose();
+            businessCategorySubject.dispose();
+
+            params.offset += (params.limit || 50);
+            if (999 > params.offset) {
+              console.log("params", params);
+              return YelpBusiness.businessSearchForCity(city, params, callback);
+            } else {
+              console.log("done calling back");
+              return callback && callback();
+            }
+          }
+        });
+      }
     );
   }
 
