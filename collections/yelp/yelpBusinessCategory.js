@@ -49,20 +49,7 @@ class YelpBusinessCategory extends Yelp {
   }
 
   static recreateDBTable(callback) {
-    DB.getConnection((err, db) => {
-      const yelpBusinessCategoryDBModel = this.getDBModel(db);
-
-      yelpBusinessCategoryDBModel.drop(err => {
-        if (err) return callback && callback(err, null);
-
-        yelpBusinessCategoryDBModel.sync(err => {
-          if (err) return callback && callback(err, null);
-
-          console.log("YelpBusinessCategory | done creating YelpBusinessCategory table!");
-          return callback && callback(null);
-        });
-      });
-    });
+    DB.recreateDBTable(this, callback);
   }
 }
 

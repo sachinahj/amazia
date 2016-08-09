@@ -24,7 +24,7 @@ class DB {
   static save (self, findQuery, DBModel, callback) {
     DBModel.one(findQuery, (err, row) => {
       if (err) return callback && callback(err, null);
-      if (!row) return this.create(self)(DBModel, resolve, reject);
+      if (!row) return this.create(self, DBModel, callback);
 
       for (let key in self) {
         row[key] = self[key];
@@ -53,6 +53,25 @@ class DB {
 
       console.log(self.constructor.className, "| done creating ", self[self.constructor.displayProperty]);
       return callback && callback(null);
+    });
+  }
+
+  static recreateDBTable(self, callback) {
+    DB.getConnection((err, db) => {
+      if (err) return callback && callback(err, null);
+
+      const DBModel = self.getDBModel(db);
+
+      DBModel.drop(err => {
+        if (err) return callback && callback(err, null);
+
+        DBModel.sync(err => {
+          if (err) return callback && callback(err, null);
+
+          console.log(self.className, "| done creating table!");
+          return callback && callback(null);
+        });
+      });
     });
   }
 
@@ -124,59 +143,51 @@ class DB {
       country: "USA"
     });
 
+    var async = {
+      series: function (series) {
+        return Rx.Observable.defer(function () {
+          var acc = series[0]();
+          for (var i = 1, len = series.length; i < len; i++) {
+            (function (func) {
+              acc = acc.flatMapLatest(function () {
+                return func();
+              });
+            }(series[i]));
+          }
 
-    function wrapArray (items) {
-      return Rx.Observable
-        .from(items)
-        .concatAll()
-        .toArray();
+          return acc;
+        });
+      }
     }
 
-    Rx.Observable.from(
-      [
-        Rx.Observable.fromNodeCallback(City.recreateDBTable),
-        Rx.Observable.fromNodeCallback(YelpBusiness.recreateDBTable),
-        Rx.Observable.fromNodeCallback(YelpCategory.recreateDBTable),
-        Rx.Observable.fromNodeCallback(YelpBusinessCategory.recreateDBTable),
-        Rx.Observable.fromNodeCallback(atlanta.upsert),
-        Rx.Observable.fromNodeCallback(miami.upsert),
-      ]
-    )
-    .concatAll()
-    .toArray()
-    .forEach(
-      function (results) {
-        console.log('DB DB results', results);
-      },
-      function (err) {
-        console.log('DB DB Error: %s', err);
-      }
-    )
+    var obs = async.series([
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("City.recreateDBTable");
+        City.recreateDBTable(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("YelpBusiness.recreateDBTable");
+        YelpBusiness.recreateDBTable(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("YelpCategory.recreateDBTable");
+        YelpCategory.recreateDBTable(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("YelpBusinessCategory.recreateDBTable");
+        YelpBusinessCategory.recreateDBTable(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("atlanta.upsert");
+        atlanta.upsert(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("miami.upsert");
+        miami.upsert(callback);
+      }),
+    ]);
 
-
-
-    // City.recreateDBTable()
-    //   .then(function () {
-    //     return YelpBusiness.recreateDBTable();
-    //   })
-    //   .then(function () {
-    //     return YelpCategory.recreateDBTable();
-    //   })
-    //   .then(function () {
-    //     return YelpBusinessCategory.recreateDBTable();
-    //   })
-    //   .then(function () {
-    //     return atlanta.upsert();
-    //   })
-    //   .then(function () {
-    //     return miami.upsert();
-    //   })
-    //   .then(function () {
-    //     console.log("done bitches");
-    //   })
-    //   .catch((reason) => {
-    //     console.error("DB.recreateDBTables | reason", reason);
-    //   });
+    obs.subscribe();
   }
 }
 

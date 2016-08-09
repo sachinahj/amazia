@@ -48,22 +48,7 @@ class City {
   }
 
   static recreateDBTable(callback) {
-    DB.getConnection((err, db) => {
-      if (err) return callback && callback(err, null);
-
-      const cityDBModel = this.getDBModel(db);
-
-      cityDBModel.drop(err => {
-        if (err) return callback && callback(err, null);
-
-        cityDBModel.sync(err => {
-          if (err) return callback && callback(err, null);
-
-          console.log("City | done creating City table!");
-          return callback && callback(null);
-        });
-      });
-    });
+    DB.recreateDBTable(this, callback);
   }
 
   static findLastUpdatedYelpBusiness(callback) {
@@ -85,5 +70,8 @@ class City {
     });
   }
 }
+
+City.className = 'City';
+City.displayProperty = 'name';
 
 module.exports = City;
