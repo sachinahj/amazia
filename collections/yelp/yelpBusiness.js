@@ -47,8 +47,6 @@ class YelpBusiness extends Yelp {
       console.log("json.businesses.length", json.businesses.length);
 
       const last = json.businesses[json.businesses.length - 1];
-      console.log("last", last);
-      console.log("last.categories", last.categories);
 
       json.businesses.forEach((businessRaw, idx, array) => {
 
@@ -78,7 +76,7 @@ class YelpBusiness extends Yelp {
         }
 
         if (idx === array.length - 1) {
-          business.isLastInArray = true;
+          businessInfo.isLastBusiness = true;
         }
 
         businessSubject.onNext(businessInfo);
@@ -104,16 +102,16 @@ class YelpBusiness extends Yelp {
             businessInfo.category = category;
 
             if (
-              businessInfo.business.isLastInArray &&
+              businessInfo.isLastBusiness &&
               idx === array.length - 1
             ) {
-              businessInfo.category.isLastInArray = true;
+              businessInfo.isLastCategory = true;
             }
 
             categorySubject.onNext(businessInfo);
 
             if (
-              businessInfo.business.isLastInArray &&
+              businessInfo.isLastBusiness &&
               idx === array.length - 1
             ) {
               categorySubject.onCompleted();
@@ -126,6 +124,7 @@ class YelpBusiness extends Yelp {
     categorySubject.forEach(
       (businessInfo) => {
         businessInfo = Clone(businessInfo);
+
         businessInfo.category.upsert(() => {
           const businessCategoryData = {
             businessId: businessInfo.business.id,
@@ -135,6 +134,13 @@ class YelpBusiness extends Yelp {
           const businessCategory = new YelpBusinessCategory(businessCategoryData);
           businessInfo.businessCategory = businessCategory;
 
+          if (
+            businessInfo.isLastBusiness &&
+            businessInfo.isLastCategory
+          ) {
+            businessInfo.isLastBusinessCategory = true;
+          }
+
           businessCategorySubject.onNext(businessInfo);
         });
       }
@@ -142,21 +148,22 @@ class YelpBusiness extends Yelp {
 
     businessCategorySubject.forEach(
       (businessInfo) => {
+        businessInfo = Clone(businessInfo);
+
         businessInfo.businessCategory.upsert(() => {
-          if (
-            businessInfo.business.isLastInArray &&
-            businessInfo.category.isLastInArray
-          ) {
+
+          if (businessInfo.isLastBusinessCategory) {
+
             businessCategorySubject.onCompleted();
-            businessSubject.dispose();
-            categorySubject.dispose();
-            businessCategorySubject.dispose();
 
             params.offset += (params.limit || 50);
             if (999 > params.offset) {
+
               console.log("params", params);
               return YelpBusiness.businessSearchForCity(city, params, callback);
+
             } else {
+
               console.log("done calling back");
               return callback && callback();
             }

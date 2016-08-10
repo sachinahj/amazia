@@ -16,8 +16,8 @@ const run = () => {
     {
       location: `${city.name},${city.state}`,
       sort_by: 'rating',
-      offset: 0,
-      limit: 50,
+      offset: 640,
+      limit: 20,
     });
   });
 }
