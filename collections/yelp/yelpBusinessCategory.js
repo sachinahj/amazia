@@ -1,7 +1,5 @@
 'use strict'
 
-const Request = require('request');
-
 const DB = require('../db');
 const LocalConfig = require('../../_config.json');
 const Yelp = require('./yelp');

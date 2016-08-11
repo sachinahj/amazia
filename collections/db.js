@@ -143,11 +143,11 @@ class DB {
       country: "USA"
     });
 
-    var async = {
+    const async = {
       series: function (series) {
         return Rx.Observable.defer(function () {
-          var acc = series[0]();
-          for (var i = 1, len = series.length; i < len; i++) {
+          let acc = series[0]();
+          for (let i = 1, len = series.length; i < len; i++) {
             (function (func) {
               acc = acc.flatMapLatest(function () {
                 return func();
@@ -160,7 +160,7 @@ class DB {
       }
     }
 
-    var obs = async.series([
+    const obs = async.series([
       Rx.Observable.fromNodeCallback(function (callback) {
         console.log("City.recreateDBTable");
         City.recreateDBTable(callback);
