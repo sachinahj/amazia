@@ -2,7 +2,7 @@
 
 const City = require('../collections/city');
 const {YelpLogBusinessSearch} = require('../collections/yelp');
-const Scirpts = require('./index');
+const Scripts = require('./index');
 
 const Start = () => {
   City.needsForcedYelpBusinessSearch((err, city) => {
@@ -15,7 +15,7 @@ const Start = () => {
         console.log("scripting forced", city);
         console.log("city", city);
         console.log("-------------------------");
-        Scirpts.Yelp.GrabAllCategoriesForCity(city);
+        Scripts.Yelp.GrabAllCategoriesForCity(city);
       });
     } else {
       YelpLogBusinessSearch.findLatestLog((err, yelpLogBusinessSearch) => {
@@ -25,7 +25,7 @@ const Start = () => {
             console.log("city", city);
             console.log("yelpLogBusinessSearch", yelpLogBusinessSearch);
             console.log("-------------------------");
-            Scirpts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch);
+            Scripts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch);
           });
         } else {
           console.log("no city to run for");
