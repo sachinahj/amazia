@@ -85,12 +85,12 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
     });
 
     startingIndex -=1;
+    params.limit = yelpLogBusinessSearch.limit || params.limit;
+    params.offset = yelpLogBusinessSearch.offset || params.offset;
 
-    if (!yelpLogBusinessSearch.isDone) {
-      params.limit = yelpLogBusinessSearch.limit;
-      params.offset = yelpLogBusinessSearch.offset;
-    } else {
+    if (yelpLogBusinessSearch.isDone) {
       yelpLogBusinessSearch = undefined;
+      params.offset += params.limit;
     }
   }
 
