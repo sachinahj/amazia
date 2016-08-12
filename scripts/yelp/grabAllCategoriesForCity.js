@@ -5,6 +5,7 @@ const Rx = require('rx');
 
 const LocalConfig = require('../../_config.json');
 const Categories = require('./data/categories');
+const BussinessSearch = require('./businessSearch');
 
 const _fakeAsyncFunction = (city, category, callback) => {
   console.log(category.alias, "starting");
@@ -14,7 +15,7 @@ const _fakeAsyncFunction = (city, category, callback) => {
   }, 3000);
 }
 
-const GrabAllCategoriesForCity = (city) => {
+const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
   const subject = new Rx.Subject();
 
   console.log("Categories.length", Categories.length);
@@ -34,16 +35,33 @@ const GrabAllCategoriesForCity = (city) => {
 
   console.log("filteredCategories.length", filteredCategories.length);
 
+  const initialParams = {
+    location: `${city.name},${city.state}`,
+    sort_by: 'rating',
+    limit: 20,
+    offset: 0,
+  }
+
+  let params = initialParams;
+
   subject.subscribe(
   (index) => {
     index += 1;
+    params.categories = filteredCategories[index].alias;
     console.log("index", index);
     if (index <= filteredCategories.length - 1) {
-      console.log(filteredCategories[index].alias);
-      setTimeout(function () {
+      BussinessSearch(
+        city,
+        params,
+        yelpLogBusinessSearch,
+        () => {
+          params = initialParams;
+          yelpLogBusinessSearch = undefined;
+          console.log(filteredCategories[index].alias, "done!");
+          subject.onNext(index);
+        }
+      );
 
-        subject.onNext(index);
-      }, 3000);
     } else {
       subject.onCompleted();
     }
@@ -55,7 +73,30 @@ const GrabAllCategoriesForCity = (city) => {
     console.log("done");
   });
 
-  subject.onNext(-1);
+
+  let startingIndex = -1;
+
+  if (yelpLogBusinessSearch) {
+
+    filteredCategories.forEach((category, index) => {
+      if (category.alias == yelpLogBusinessSearch.alias) {
+        startingIndex = index;
+      }
+    });
+
+    startingIndex -=1;
+
+    if (!yelpLogBusinessSearch.isDone) {
+      params.limit = yelpLogBusinessSearch.limit;
+      params.offset = yelpLogBusinessSearch.offset;
+    } else {
+      yelpLogBusinessSearch = undefined;
+    }
+  }
+
+  console.log("startingIndex", startingIndex);
+
+  subject.onNext(startingIndex);
 }
 
 

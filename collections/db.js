@@ -129,18 +129,26 @@ class DB {
 
   static recreateDBTables () {
     const City = require('./city');
-    const {Yelp, YelpBusiness, YelpCategory, YelpBusinessCategory} = require('./yelp');
+    const {
+      Yelp,
+      YelpAPI,
+      YelpBusiness,
+      YelpBusinessCategory,
+      YelpLogBusinessSearch,
+      YelpCategory,
+    } = require('./yelp');
+
 
     const atlanta = new City({
       name: "Atlanta",
       state: "GA",
-      country: "USA"
+      country: "US"
     });
 
     const miami = new City({
       name: "Miami",
       state: "FL",
-      country: "USA"
+      country: "US"
     });
 
     const async = {
@@ -176,6 +184,10 @@ class DB {
       Rx.Observable.fromNodeCallback(function (callback) {
         console.log("YelpBusinessCategory.recreateDBTable");
         YelpBusinessCategory.recreateDBTable(callback);
+      }),
+      Rx.Observable.fromNodeCallback(function (callback) {
+        console.log("YelpLogBusinessSearch.recreateDBTable");
+        YelpLogBusinessSearch.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
         console.log("atlanta.upsert");

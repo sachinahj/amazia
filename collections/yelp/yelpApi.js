@@ -19,9 +19,10 @@ class YelpAPI extends Yelp {
       method: 'GET',
       url: url,
       qs: queryParams,
+      timeout: 10000,
       headers: {
         'Authorization': `Bearer ${LocalConfig.dataProviders.yelp.accessToken}`
-      }
+      },
     };
 
     return options;

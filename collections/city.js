@@ -39,7 +39,7 @@ class City {
       name: {type: "text"},
       state: {type: "text"},
       country: {type: "text"},
-      lastUpdatedYelpBusiness: {type: "number"},
+      forceYelpBusinessSearch: {type: "boolean"},
     }, {
       timestamp: true,
     });
@@ -51,18 +51,37 @@ class City {
     DB.recreateDBTable(this, callback);
   }
 
-  static findLastUpdatedYelpBusiness(callback) {
+  static needsForcedYelpBusinessSearch(callback) {
     DB.getConnection((err, db) => {
       if (err) return callback && callback(err, null);
 
       const cityDBModel = this.getDBModel(db);
 
-      cityDBModel.find({}).order("lastUpdatedYelpBusiness").all((err, cities) => {
+      cityDBModel.find({forceYelpBusinessSearch: true}, (err, cities) => {
         if (err) return callback && callback(err, null);
 
-        let city = cities[0];
+        let city = cities[0] || null;
         if (city) {
-          city = new this(city);
+          city = new City(city);
+        }
+
+        return callback && callback(null, city);
+      });
+    });
+  }
+
+  static getWithId(id, callback) {
+    DB.getConnection((err, db) => {
+      if (err) return callback && callback(err, null);
+
+      const cityDBModel = this.getDBModel(db);
+
+      cityDBModel.find({id: id}, (err, cities) => {
+        if (err) return callback && callback(err, null);
+
+        let city = cities[0] || null;
+        if (city) {
+          city = new City(city);
         }
 
         return callback && callback(null, city);
