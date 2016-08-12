@@ -18,7 +18,6 @@ const _fakeAsyncFunction = (city, category, callback) => {
 const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
   const subject = new Rx.Subject();
 
-  console.log("Categories.length", Categories.length);
 
   const filteredCategories = Categories.filter(category => {
     let toKeep = false;
@@ -40,25 +39,26 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
     sort_by: 'rating',
     limit: 20,
     offset: 0,
-  }
-
-  let params = initialParams;
+  };
 
   subject.subscribe(
-  (index) => {
-    index += 1;
-    params.categories = filteredCategories[index].alias;
-    console.log("index", index);
-    if (index <= filteredCategories.length - 1) {
+  (info) => {
+    console.log("info", info);
+
+    info = Clone(info);
+    info.index += 1;
+    info.params.categories = filteredCategories[info.index].alias;
+
+    if (info.index <= filteredCategories.length - 1) {
       BussinessSearch(
-        city,
-        params,
-        yelpLogBusinessSearch,
+        info.city,
+        info.params,
+        info.yelpLogBusinessSearch,
         () => {
-          params = initialParams;
-          yelpLogBusinessSearch = undefined;
-          console.log(filteredCategories[index].alias, "done!");
-          subject.onNext(index);
+          info.params = Clone(initialParams);
+          info.yelpLogBusinessSearch = undefined;
+          console.log(filteredCategories[info.index].alias, "done!", info);
+          subject.onNext(info);
         }
       );
 
@@ -75,6 +75,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
 
 
   let startingIndex = -1;
+  let params = Clone(initialParams);
 
   if (yelpLogBusinessSearch) {
 
@@ -84,19 +85,29 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
       }
     });
 
-    startingIndex -=1;
-    params.limit = yelpLogBusinessSearch.limit || params.limit;
-    params.offset = yelpLogBusinessSearch.offset || params.offset;
-
-    if (yelpLogBusinessSearch.isDone) {
+    if (startingIndex == -1) {
       yelpLogBusinessSearch = undefined;
-      params.offset += params.limit;
     }
+
+    if (startingIndex != -1) {
+      startingIndex -= 1;
+      params.limit = yelpLogBusinessSearch.limit || params.limit;
+      params.offset = yelpLogBusinessSearch.offset || params.offset;
+
+      if (yelpLogBusinessSearch.isDone) {
+        yelpLogBusinessSearch = undefined;
+        params.offset += params.limit;
+      }
+    }
+
   }
 
-  console.log("startingIndex", startingIndex);
-
-  subject.onNext(startingIndex);
+  subject.onNext({
+    index: startingIndex,
+    city: city,
+    params: params,
+    yelpLogBusinessSearch: yelpLogBusinessSearch,
+  });
 }
 
 

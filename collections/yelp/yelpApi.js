@@ -51,9 +51,7 @@ class YelpAPI extends Yelp {
 
   static businessSearch(queryParams, callback) {
     const requestOptions = this._getRequestOptions('businesses/search', queryParams);
-
     Request(requestOptions, this._requestCallback(callback));
-
   }
 
 }

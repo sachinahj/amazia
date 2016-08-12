@@ -142,13 +142,15 @@ class DB {
     const atlanta = new City({
       name: "Atlanta",
       state: "GA",
-      country: "US"
+      country: "US",
+      forceYelpBusinessSearch: true,
     });
 
     const miami = new City({
       name: "Miami",
       state: "FL",
-      country: "US"
+      country: "US",
+      forceYelpBusinessSearch: false,
     });
 
     const async = {

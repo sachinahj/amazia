@@ -1,12 +1,10 @@
 'use strict'
 
-const CronJob = require('cron').CronJob;
-
 const City = require('../collections/city');
 const {YelpLogBusinessSearch} = require('../collections/yelp');
 const Scirpts = require('./index');
 
-const _run = () => {
+const Start = () => {
   City.needsForcedYelpBusinessSearch((err, city) => {
     if (err) console.log("server | City.needsForcedYelpBusinessSearch", err);
     console.log("city", city);
@@ -14,26 +12,27 @@ const _run = () => {
     if (city) {
       city.forceYelpBusinessSearch = false;
       city.upsert(() => {
-        console.log("scripting", city);
+        console.log("scripting forced", city);
+        console.log("city", city);
+        console.log("-------------------------");
         Scirpts.Yelp.GrabAllCategoriesForCity(city);
       });
     } else {
-      YelpLogBusinessSearch.findLatestLog((err, log) => {
-        City.getWithId(log.cityId, (err, city) => {
-          console.log("scripting", city, log);
-          Scirpts.Yelp.GrabAllCategoriesForCity(city, log);
-        })
+      YelpLogBusinessSearch.findLatestLog((err, yelpLogBusinessSearch) => {
+        if (yelpLogBusinessSearch) {
+          City.getWithId(yelpLogBusinessSearch.cityId, (err, city) => {
+            console.log("scripting catch up");
+            console.log("city", city);
+            console.log("yelpLogBusinessSearch", yelpLogBusinessSearch);
+            console.log("-------------------------");
+            Scirpts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch);
+          });
+        } else {
+          console.log("no city to run for");
+        }
       });
     }
-});
-}
-
-const Start = () => {
-  console.log("running");
-  // _run();
-  new CronJob("*/1 * * * * *", function () {
-    console.log("yo");
-  }, function () {}, true, 'America/Chicago');
+  });
 }
 
 module.exports = Start;
