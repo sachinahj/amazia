@@ -3,9 +3,9 @@
 const Yelp = require('./yelp');
 const YelpAPI = require('./yelpApi');
 const YelpBusiness = require('./yelpBusiness');
-const YelpBusinessCategory = require('./YelpBusinessCategory');
-const YelpLogBusinessSearch = require('./YelpLogBusinessSearch');
-const YelpCategory = require('./YelpCategory');
+const YelpBusinessCategory = require('./yelpBusinessCategory');
+const YelpLogBusinessSearch = require('./yelpLogBusinessSearch');
+const YelpCategory = require('./yelpCategory');
 
 module.exports = {
   Yelp,
