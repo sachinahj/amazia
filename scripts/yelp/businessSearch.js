@@ -37,19 +37,22 @@ const BusinessesSearch = (info, callback) => {
     });
   }
 
-  yelpLogBusinessSearch.upsert(() => {
+  yelpLogBusinessSearch.upsert((err) => {
+    if (err) return callback && callback(err, null);
 
     YelpAPI.businessSearch(params, function (err, json) {
       if (err) {
         yelpLogBusinessSearch.error = err;
-        yelpLogBusinessSearch.upsert(() => {
-         return callback && callback(err,  null);
+        yelpLogBusinessSearch.upsert((err) => {
+          if (err) return callback && callback(err, null);
+         return callback && callback(yelpLogBusinessSearch.error,  null);
         });
       }
       console.log("json.businesses.length", json.businesses.length);
       if (!json.businesses.length) {
         yelpLogBusinessSearch.isDone = true;
-        yelpLogBusinessSearch.upsert(() => {
+        yelpLogBusinessSearch.upsert((err) => {
+          if (err) return callback && callback(err, null);
           return callback && callback();
         });
      }
@@ -99,7 +102,9 @@ const BusinessesSearch = (info, callback) => {
   businessSubject.forEach(
     (businessInfo) => {
       businessInfo = Clone(businessInfo);
-      businessInfo.business.upsert(() => {
+      businessInfo.business.upsert((err) => {
+        if (err) return callback && callback(err, null);
+
         businessInfo.businessRaw.categories.forEach((categoryRaw, idx, array) => {
           const categoryData = {
             alias: categoryRaw.alias,
@@ -133,7 +138,9 @@ const BusinessesSearch = (info, callback) => {
     (businessInfo) => {
       businessInfo = Clone(businessInfo);
 
-      businessInfo.category.upsert(() => {
+      businessInfo.category.upsert((err) => {
+        if (err) return callback && callback(err, null);
+
         const businessCategoryData = {
           businessId: businessInfo.business.id,
           categoryId: businessInfo.category.id,
@@ -167,13 +174,17 @@ const BusinessesSearch = (info, callback) => {
     (businessInfo) => {
       businessInfo = Clone(businessInfo);
 
-      businessInfo.businessCategory.upsert(() => {
+      businessInfo.businessCategory.upsert((err) => {
+        if (err) return callback && callback(err, null);
+
 
         if (businessInfo.isLastBusinessCategory) {
           businessCategorySubject.onCompleted();
 
           yelpLogBusinessSearch.isDone = true;
-          yelpLogBusinessSearch.upsert(() => {
+          yelpLogBusinessSearch.upsert((err) => {
+            if (err) return callback && callback(err, null);
+
 
             params = _getNewParams(params);
 

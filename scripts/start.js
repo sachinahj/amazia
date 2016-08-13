@@ -69,23 +69,32 @@ const _whatToDo = (callback) => {
 
 const _runCityForced = (city, callback) => {
   city.forceYelpBusinessSearch = false;
-  city.upsert(() => {
-    Scripts.Yelp.GrabAllCategoriesForCity(city, undefined, (err) => {
-      if (err) return callback && callback(err, null);
-      return callback && callback();
-    });
+  city.upsert((err) => {
+    if (err) return callback && callback(err, null);
+    Scripts.Yelp.GrabAllCategoriesForCity(city, undefined, callback);
   });
 };
 
 const _continueFromLog = (city, yelpLogBusinessSearch, callback) => {
-  Scripts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch, (err) => {
-    if (err) return callback && callback(err, null);
-    return callback && callback();
-  });
+  Scripts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch, callback);
 };
 
 const _setCityForced = (city, callback) => {
-  return callback && callback();
+  YelpLogBusinessSearch.findLastUpdateCityId((err, cityId) => {
+
+    console.log("cityId", cityId);
+
+    return callback && callback();
+
+    if (err) return callback && callback(err, null);
+
+    City.getWithId(cityId, (err, city) => {
+      if (err) return callback && callback(err, null);
+
+      city.forceYelpBusinessSearch = true;
+      city.upsert(callback);
+    });
+  });
 };
 
 const Start = (callback) => {
