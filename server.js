@@ -31,17 +31,16 @@ const _spawnProcess = (league, type) => {
 
 
 _spawnedProcess = _spawnProcess();
-// new CronJob("*/1 * * * *", function () {
 
-//   if (_spawnedProcess) {
-//     _spawnedProcess.kill();
-//   }
+new CronJob("*/15 * * * *", function () {
 
-//   _spawnedProcess = _spawnProcess();
+  if (_spawnedProcess) {
+    _spawnedProcess.kill();
+  }
 
-// }, function () {}, true, 'America/Chicago');
+  _spawnedProcess = _spawnProcess();
 
-
+}, function () {}, true, 'America/Chicago');
 
 
 // DB.recreateDBTables();
