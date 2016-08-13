@@ -1,6 +1,7 @@
 'use strict'
 
 const Modts = require('orm-timestamps');
+const Moment = require('moment-timezone');
 const Orm = require('orm');
 const Rx = require('rx');
 
@@ -110,13 +111,15 @@ class DB {
 
       } else {
 
+        console.log("moment date", Moment().tz("America/Chicago").toDate());
+
         db.use(Modts, {
           createdProperty: 'createdAt',
           modifiedProperty: 'modifiedAt',
           expireProperty: false,
           dbtype: { type: 'date', time: true },
-          now: function() { return new Date(); },
-          expire: function() { const d = new Date(); return d.setMinutes(d.getMinutes() + 60); },
+          now: function() { return Moment().tz("America/Chicago").format("YYYY-MM-DD HH:mm:ss"); },
+          expire: function() { const d = Moment().tz("America/Chicago").format("YYYY-MM-DD HH:mm:ss"); return d.setMinutes(d.getMinutes() + 60); },
           persist: true
         });
 

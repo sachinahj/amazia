@@ -1,6 +1,7 @@
 'use strict'
 
 const CronJob = require('cron').CronJob;
+const Moment = require('moment-timezone');
 const Path = require('path');
 const Spawn = require('child_process').spawn;
 
@@ -30,15 +31,15 @@ const _spawnProcess = (league, type) => {
 
 
 _spawnedProcess = _spawnProcess();
-new CronJob("*/1 * * * *", function () {
+// new CronJob("*/1 * * * *", function () {
 
-  if (_spawnedProcess) {
-    _spawnedProcess.kill();
-  }
+//   if (_spawnedProcess) {
+//     _spawnedProcess.kill();
+//   }
 
-  _spawnedProcess = _spawnProcess();
+//   _spawnedProcess = _spawnProcess();
 
-}, function () {}, true, 'America/Chicago');
+// }, function () {}, true, 'America/Chicago');
 
 
 

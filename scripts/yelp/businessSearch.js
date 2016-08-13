@@ -164,12 +164,11 @@ const BusinessesSearch = (city, params, yelpLogBusinessSearch, callback) => {
 
       businessInfo.businessCategory.upsert(() => {
 
-        yelpLogBusinessSearch.isDone = true;
-        yelpLogBusinessSearch.upsert(() => {
+        if (businessInfo.isLastBusinessCategory) {
+          businessCategorySubject.onCompleted();
 
-          if (businessInfo.isLastBusinessCategory) {
-
-            businessCategorySubject.onCompleted();
+          yelpLogBusinessSearch.isDone = true;
+          yelpLogBusinessSearch.upsert(() => {
 
             params = _getNewParams(params);
 
@@ -182,8 +181,8 @@ const BusinessesSearch = (city, params, yelpLogBusinessSearch, callback) => {
               console.log("done calling back");
               return callback && callback();
             }
-          }
-        });
+          });
+        }
       });
     }
   );

@@ -99,7 +99,6 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
         params.offset += params.limit;
       }
     }
-
   }
 
   subject.onNext({
