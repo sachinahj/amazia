@@ -32,7 +32,7 @@ const _spawnProcess = (league, type) => {
 
 _spawnedProcess = _spawnProcess();
 
-new CronJob("*/15 * * * *", function () {
+new CronJob("0 */4 * * *", function () {
 
   if (_spawnedProcess) {
     _spawnedProcess.kill();
