@@ -107,6 +107,7 @@ class DB {
       if (err) {
 
         _DBConnection = null;
+        console.log("RESETTING DB CONNECTION");
         DB.getConnection(callback);
 
       } else {

@@ -29,8 +29,11 @@ class YelpAPI extends Yelp {
 
   }
 
-  static _requestCallback (callback) {
+  static _requestCallback (requestOptions, callback) {
     return (err, response, body) => {
+      console.log("got response....");
+      console.log("response", response.statusCode);
+      console.log("response", response.statusMessage);
       if (err) console.error("YelpAPI _requestCallback err", err);
       if (err) return callback && callback(err, null);
 
@@ -45,13 +48,19 @@ class YelpAPI extends Yelp {
           };
         }
         return callback && callback(null, json);
+      } else {
+        setTimeout(() => {
+          console.log("Making retry request....");
+          Request(requestOptions, this._requestCallback(requestOptions, callback));
+        }, 5000);
       }
     }
   }
 
   static businessSearch(queryParams, callback) {
     const requestOptions = this._getRequestOptions('businesses/search', queryParams);
-    Request(requestOptions, this._requestCallback(callback));
+    console.log("Making request....");
+    Request(requestOptions, this._requestCallback(requestOptions, callback));
   }
 
 }

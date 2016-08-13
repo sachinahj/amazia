@@ -15,7 +15,10 @@ const Start = () => {
         console.log("scripting forced", city);
         console.log("city", city);
         console.log("-------------------------");
-        Scripts.Yelp.GrabAllCategoriesForCity(city);
+        Scripts.Yelp.GrabAllCategoriesForCity(city, undefined, () => {
+          if (err) return console.error("GrabAllCategoriesForCity err", err);
+          console.log("GrabAllCategoriesForCity done for", city.name);
+        });
       });
     } else {
       YelpLogBusinessSearch.findLatestLog((err, yelpLogBusinessSearch) => {
@@ -25,7 +28,10 @@ const Start = () => {
             console.log("city", city);
             console.log("yelpLogBusinessSearch", yelpLogBusinessSearch);
             console.log("-------------------------");
-            Scripts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch);
+            Scripts.Yelp.GrabAllCategoriesForCity(city, yelpLogBusinessSearch, () => {
+              if (err) return console.error("GrabAllCategoriesForCity err", err);
+              console.log("GrabAllCategoriesForCity done for", city.name);
+            });
           });
         } else {
           console.log("no city to run for");

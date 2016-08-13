@@ -52,7 +52,7 @@ class YelpLogBusinessSearch extends Yelp {
 
       const yelpLogBusinessSearchDBModel = this.getDBModel(db);
 
-      yelpLogBusinessSearchDBModel.find({}).order("isDone").order("modifiedAt").limit(1).run((err, yelpLogsBusinessSearch) => {
+      yelpLogBusinessSearchDBModel.find({}).order("isDone").order("-modifiedAt").limit(1).run((err, yelpLogsBusinessSearch) => {
         if (err) return callback && callback(err, null);
 
         let yelpLogBusinessSearch = yelpLogsBusinessSearch[0] || null;

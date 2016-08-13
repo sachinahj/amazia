@@ -15,7 +15,7 @@ const _fakeAsyncFunction = (city, category, callback) => {
   }, 3000);
 }
 
-const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
+const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
   const subject = new Rx.Subject();
 
 
@@ -47,14 +47,16 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
 
     info = Clone(info);
     info.index += 1;
-    info.params.categories = filteredCategories[info.index].alias;
 
     if (info.index <= filteredCategories.length - 1) {
+      info.params.categories = filteredCategories[info.index].alias;
+
       BussinessSearch(
         info.city,
         info.params,
         info.yelpLogBusinessSearch,
-        () => {
+        (err) => {
+          if (err) return callback && callback(err, null);
           info.params = Clone(initialParams);
           info.yelpLogBusinessSearch = undefined;
           console.log(filteredCategories[info.index].alias, "done!", info);
@@ -71,6 +73,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
   },
   () => {
     console.log("done");
+    return callback && callback();
   });
 
 
@@ -87,9 +90,9 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch) => {
 
     if (startingIndex == -1) {
       yelpLogBusinessSearch = undefined;
-    }
-
-    if (startingIndex != -1) {
+    } else if (startingIndex == filteredCategories.length - 1 && yelpLogBusinessSearch.isDone) {
+      return callback && callback();
+    } else {
       startingIndex -= 1;
       params.limit = yelpLogBusinessSearch.limit || params.limit;
       params.offset = yelpLogBusinessSearch.offset || params.offset;
