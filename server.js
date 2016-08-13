@@ -29,7 +29,7 @@ const _spawnProcess = (league, type) => {
 };
 
 
-_spawnProcess();
+_spawnedProcess = _spawnProcess();
 new CronJob("*/1 * * * *", function () {
 
   if (_spawnedProcess) {
