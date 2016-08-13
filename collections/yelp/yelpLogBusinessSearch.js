@@ -25,7 +25,6 @@ class YelpLogBusinessSearch extends Yelp {
     );
   }
 
-
   static getDBModel(db) {
     const yelpLogBusinessSearchDBModel = db.define("yelpLogBusinessSearch", {
       id: {type: 'serial', key: true},

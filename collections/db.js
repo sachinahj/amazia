@@ -6,7 +6,9 @@ const Orm = require('orm');
 const Rx = require('rx');
 
 const LocalConfig = require('../_config.json');
+const Logger = require('./logger');
 
+const _logger = new Logger("DB Collection");
 let _DBConnection = null;
 
 class DB {
@@ -38,7 +40,7 @@ class DB {
           self[key] = results[key];
         }
 
-        console.log(self.constructor.className, "| done updating", self[self.constructor.displayProperty]);
+        _logger.info(`${self.constructor.className} | done updating ${self[self.constructor.displayProperty]}`);
         return callback && callback(null);
       });
     });
@@ -52,7 +54,7 @@ class DB {
         self[key] = results[key];
       }
 
-      console.log(self.constructor.className, "| done creating ", self[self.constructor.displayProperty]);
+      _logger.info(`${self.constructor.className} | done creating  ${self[self.constructor.displayProperty]}`);
       return callback && callback(null);
     });
   }
@@ -69,7 +71,7 @@ class DB {
         DBModel.sync(err => {
           if (err) return callback && callback(err, null);
 
-          console.log(self.className, "| done creating table!");
+          _logger.info(`${self.className} | done creating table!`);
           return callback && callback(null);
         });
       });
@@ -106,13 +108,11 @@ class DB {
 
       if (err) {
 
+        _logger.log("warn", "Resetting db connection");
         _DBConnection = null;
-        console.log("RESETTING DB CONNECTION");
         DB.getConnection(callback);
 
       } else {
-
-        console.log("moment date", Moment().tz("America/Chicago").toDate());
 
         db.use(Modts, {
           createdProperty: 'createdAt',
@@ -176,31 +176,31 @@ class DB {
 
     const obs = async.series([
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("City.recreateDBTable");
+        _logger.info("Starting City.recreateDBTable");
         City.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("YelpBusiness.recreateDBTable");
+        _logger.info("Starting YelpBusiness.recreateDBTable");
         YelpBusiness.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("YelpCategory.recreateDBTable");
+        _logger.info("Starting YelpCategory.recreateDBTable");
         YelpCategory.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("YelpBusinessCategory.recreateDBTable");
+        _logger.info("Starting YelpBusinessCategory.recreateDBTable");
         YelpBusinessCategory.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("YelpLogBusinessSearch.recreateDBTable");
+        _logger.info("Starting YelpLogBusinessSearch.recreateDBTable");
         YelpLogBusinessSearch.recreateDBTable(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("atlanta.upsert");
+        _logger.info("Starting atlanta.upsert");
         atlanta.upsert(callback);
       }),
       Rx.Observable.fromNodeCallback(function (callback) {
-        console.log("miami.upsert");
+        _logger.info("Starting miami.upsert");
         miami.upsert(callback);
       }),
     ]);

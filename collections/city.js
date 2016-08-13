@@ -4,6 +4,12 @@ const Orm = require('orm');
 
 const DB = require('./db.js');
 
+const {
+  YelpCategory,
+  CategoryList
+} = require('./yelp');
+
+
 class City {
 
   constructor(city) {
@@ -31,6 +37,23 @@ class City {
       },
       callback
     );
+  }
+
+  getFilteredYelpCategories() {
+    const filteredCategories = CategoryList.filter(category => {
+      let toKeep = false;
+      if (!category.country_whitelist || category.country_whitelist.indexOf(this.country) > -1) {
+        toKeep = true;
+      }
+
+      if (category.country_blacklist && category.country_blacklist.indexOf(this.country) > -1) {
+        toKeep = false;
+      }
+
+      return toKeep;
+    });
+
+    return filteredCategories;
   }
 
   static getDBModel(db) {

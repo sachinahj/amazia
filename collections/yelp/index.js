@@ -6,6 +6,7 @@ const YelpBusiness = require('./yelpBusiness');
 const YelpBusinessCategory = require('./yelpBusinessCategory');
 const YelpLogBusinessSearch = require('./yelpLogBusinessSearch');
 const YelpCategory = require('./yelpCategory');
+const CategoryList = require('./data/categories');
 
 module.exports = {
   Yelp,
@@ -14,5 +15,6 @@ module.exports = {
   YelpBusinessCategory,
   YelpLogBusinessSearch,
   YelpCategory,
+  CategoryList,
 };
 

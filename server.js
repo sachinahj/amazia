@@ -15,15 +15,15 @@ const _spawnProcess = (league, type) => {
   const spawnedProcess = Spawn('nice', ['-n', '15', 'node', folderPath + '/spawn.js']);
 
   spawnedProcess.stdout.on('data', function (data) {
-    console.log('spawnedProcess: stdout: ' + data);
+    console.log(data.toString());
   });
 
   spawnedProcess.stderr.on('data', function (data) {
-    console.log('spawnedProcess: stderr: ' + data);
+    console.log(data.toString());
   });
 
   spawnedProcess.on('close', function (code) {
-    console.log('spawnedProcess: child process exited with code ' + code);
+    console.log('spawnedProcess | Child process exited with code ' + code);
   });
 
   return spawnedProcess;
@@ -32,7 +32,7 @@ const _spawnProcess = (league, type) => {
 
 _spawnedProcess = _spawnProcess();
 
-new CronJob("0 */4 * * *", function () {
+new CronJob("*/2 * * * *", function () {
 
   if (_spawnedProcess) {
     _spawnedProcess.kill();

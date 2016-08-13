@@ -4,7 +4,10 @@ const Request = require('request');
 
 const DB = require('../db');
 const LocalConfig = require('../../_config.json');
+const Logger = require('../logger');
 const Yelp = require('./yelp');
+
+const _logger = new Logger("YelpAPI Collection");
 
 class YelpAPI extends Yelp {
 
@@ -26,18 +29,19 @@ class YelpAPI extends Yelp {
     };
 
     return options;
-
   }
 
   static _requestCallback (requestOptions, callback) {
     return (err, response, body) => {
-      console.log("got response....");
-      console.log("response", response.statusCode);
-      console.log("response", response.statusMessage);
-      if (err) console.error("YelpAPI _requestCallback err", err);
+      if (err) _logger.error("_requestCallback error", err);
       if (err) return callback && callback(err, null);
 
+      _logger.info("got response....");
+      _logger.info("statusCode", response.statusCode);
+      _logger.info("statusMessage", response.statusMessage);
+
       if (response.statusCode == 200) {
+
         let json;
 
         try {
@@ -47,19 +51,23 @@ class YelpAPI extends Yelp {
             businesses: []
           };
         }
+
         return callback && callback(null, json);
+
       } else {
+
         setTimeout(() => {
-          console.log("Making retry request....");
+          _logger.log("Making retry request....");
           Request(requestOptions, this._requestCallback(requestOptions, callback));
         }, 5000);
+
       }
     }
   }
 
   static businessSearch(queryParams, callback) {
     const requestOptions = this._getRequestOptions('businesses/search', queryParams);
-    console.log("Making request....");
+    _logger.info("Making request....");
     Request(requestOptions, this._requestCallback(requestOptions, callback));
   }
 

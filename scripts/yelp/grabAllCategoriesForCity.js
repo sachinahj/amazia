@@ -4,68 +4,115 @@ const Clone = require('clone');
 const Rx = require('rx');
 
 const LocalConfig = require('../../_config.json');
-const Categories = require('./data/categories');
 const BussinessSearch = require('./businessSearch');
+const {
+  Yelp,
+  YelpAPI,
+  YelpBusiness,
+  YelpBusinessCategory,
+  YelpLogBusinessSearch,
+  YelpCategory,
+} = require('../../collections/yelp');
 
-const _fakeAsyncFunction = (city, category, callback) => {
-  console.log(category.alias, "starting");
-  setTimeout(function () {
-    console.log(category.alias, "done");
-    callback(category.alias);
-  }, 3000);
+const _getInitialParams = (city, filteredCategoryIndex) => {
+  const filteredCategories = city.getFilteredYelpCategories();
+
+  if (filteredCategoryIndex <= filteredCategories.length - 1) {
+
+    return {
+      location: `${city.name},${city.state}`,
+      sort_by: 'rating',
+      limit: 20,
+      offset: 0,
+      categories: filteredCategories[filteredCategoryIndex].alias,
+    };
+
+  } else {
+
+    return null;
+
+  }
 }
+
+const _getIntialInfo = (city, yelpLogBusinessSearch) => {
+
+  const info = {
+    index: 0,
+    city,
+  };
+
+
+  if (yelpLogBusinessSearch) {
+
+    let startingIndex = -1;
+    const filteredCategories = city.getFilteredYelpCategories();
+
+    filteredCategories.forEach((category, index) => {
+      if (category.alias == yelpLogBusinessSearch.alias) {
+        startingIndex = index;
+      }
+    });
+
+    if (startingIndex == -1) {
+
+      return null;
+
+    } else {
+      info.index = startingIndex;
+      info.params = _getInitialParams(city, info.index);
+
+      info.params.limit = yelpLogBusinessSearch.limit || info.params.limit;
+      info.params.offset = yelpLogBusinessSearch.offset || info.params.offset;
+
+      if (yelpLogBusinessSearch.isDone) {
+        params.offset += params.limit;
+      } else {
+        info.yelpLogBusinessSearch = yelpLogBusinessSearch;
+      }
+
+    }
+
+  } else {
+
+    info.params = _getInitialParams(city, info.index);
+
+  }
+
+  return info;
+}
+
 
 const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
   const subject = new Rx.Subject();
 
-
-  const filteredCategories = Categories.filter(category => {
-    let toKeep = false;
-    if (!category.country_whitelist || category.country_whitelist.indexOf(city.country) > -1) {
-      toKeep = true;
-    }
-
-    if (category.country_blacklist && category.country_blacklist.indexOf(city.country) > -1) {
-      toKeep = false;
-    }
-
-    return toKeep;
-  });
-
+  const filteredCategories = city.getFilteredYelpCategories();
   console.log("filteredCategories.length", filteredCategories.length);
-
-  const initialParams = {
-    location: `${city.name},${city.state}`,
-    sort_by: 'rating',
-    limit: 20,
-    offset: 0,
-  };
 
   subject.subscribe(
   (info) => {
+    info = Clone(info);
     console.log("info", info);
 
-    info = Clone(info);
-    info.index += 1;
-
-    if (info.index <= filteredCategories.length - 1) {
-      info.params.categories = filteredCategories[info.index].alias;
+    if (info.params) {
 
       BussinessSearch(
-        info.city,
-        info.params,
-        info.yelpLogBusinessSearch,
+        info,
         (err) => {
           if (err) return callback && callback(err, null);
-          info.params = Clone(initialParams);
+          console.log(info.params.categories.alias, "done!", info);
+
+          info.index += 1;
           info.yelpLogBusinessSearch = undefined;
-          console.log(filteredCategories[info.index].alias, "done!", info);
+          info.params = _getInitialParams(city, info.index);
+
           subject.onNext(info);
         }
       );
 
     } else {
+
       subject.onCompleted();
+
     }
   },
   (err) => {
@@ -77,39 +124,14 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
   });
 
 
-  let startingIndex = -1;
-  let params = Clone(initialParams);
+  const initialInfo = _getIntialInfo(city, yelpLogBusinessSearch);
 
-  if (yelpLogBusinessSearch) {
-
-    filteredCategories.forEach((category, index) => {
-      if (category.alias == yelpLogBusinessSearch.alias) {
-        startingIndex = index;
-      }
-    });
-
-    if (startingIndex == -1) {
-      yelpLogBusinessSearch = undefined;
-    } else if (startingIndex == filteredCategories.length - 1 && yelpLogBusinessSearch.isDone) {
-      return callback && callback();
-    } else {
-      startingIndex -= 1;
-      params.limit = yelpLogBusinessSearch.limit || params.limit;
-      params.offset = yelpLogBusinessSearch.offset || params.offset;
-
-      if (yelpLogBusinessSearch.isDone) {
-        yelpLogBusinessSearch = undefined;
-        params.offset += params.limit;
-      }
-    }
+  if (initialInfo) {
+    subject.onNext(initialInfo);
+  } else {
+    return callback && callback(`bad initialInfo: ${yelpLogBusinessSearch.alias} and ${city.name}`, null);
   }
 
-  subject.onNext({
-    index: startingIndex,
-    city: city,
-    params: params,
-    yelpLogBusinessSearch: yelpLogBusinessSearch,
-  });
 }
 
 

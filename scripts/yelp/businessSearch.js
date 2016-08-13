@@ -14,7 +14,12 @@ const {
 } = require('../../collections/yelp');
 
 
-const BusinessesSearch = (city, params, yelpLogBusinessSearch, callback) => {
+const BusinessesSearch = (info, callback) => {
+  let {
+    city,
+    params,
+    yelpLogBusinessSearch
+  } = info;
   console.log("businessSearchForCity", params);
   const businessSubject = new Rx.Subject();
   const categorySubject = new Rx.Subject();
