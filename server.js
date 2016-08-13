@@ -11,7 +11,7 @@ const folderPath = Path.dirname(require.main.filename);
 
 let _spawnedProcess = null;
 
-const _spawnProcess = (league, type) => {
+const _spawnProcess = (callback) => {
   const spawnedProcess = Spawn('nice', ['-n', '15', 'node', folderPath + '/spawn.js']);
 
   spawnedProcess.stdout.on('data', function (data) {
@@ -24,23 +24,37 @@ const _spawnProcess = (league, type) => {
 
   spawnedProcess.on('close', function (code) {
     console.log('spawnedProcess | Child process exited with code ' + code);
+    return callback && callback();
   });
 
   return spawnedProcess;
 };
 
-
-_spawnedProcess = _spawnProcess();
-
-new CronJob("*/2 * * * *", function () {
+const _infiniteRun = () => {
 
   if (_spawnedProcess) {
     _spawnedProcess.kill();
   }
 
-  _spawnedProcess = _spawnProcess();
+  _spawnedProcess = _spawnProcess(() => {
+
+    setTimeout(() => {
+      _infiniteRun();
+    }, 10000)
+
+  });
+};
+
+
+_infiniteRun();
+
+new CronJob("*/2 * * * *", function () {
+
+  _infiniteRun();
 
 }, function () {}, true, 'America/Chicago');
+
+
 
 
 // DB.recreateDBTables();

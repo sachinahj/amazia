@@ -2,8 +2,12 @@
 
 const myArgs = process.argv.slice(2);
 
-const Scripts = require('./scripts')
+const Logger = require('./collections/logger');
+const Scripts = require('./scripts');
 
-Scripts.Start(() => {
+const _logger = new Logger("Spawn");
+
+Scripts.Start((err) => {
+  if (err) return _logger.error(err);
   process.exit();
 });

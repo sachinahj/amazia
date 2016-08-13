@@ -85,9 +85,6 @@ const _getIntialInfo = (city, yelpLogBusinessSearch) => {
 const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
   const subject = new Rx.Subject();
 
-  const filteredCategories = city.getFilteredYelpCategories();
-  console.log("filteredCategories.length", filteredCategories.length);
-
   subject.subscribe(
   (info) => {
     info = Clone(info);
@@ -122,7 +119,6 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
     console.log("done");
     return callback && callback();
   });
-
 
   const initialInfo = _getIntialInfo(city, yelpLogBusinessSearch);
 
