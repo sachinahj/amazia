@@ -10,6 +10,7 @@ const DB = require('./collections/db')
 const folderPath = Path.dirname(require.main.filename);
 
 let _spawnedProcess = null;
+let _timer = null;
 
 const _spawnProcess = (callback) => {
   const spawnedProcess = Spawn('nice', ['-n', '15', 'node', folderPath + '/spawn.js']);
@@ -33,12 +34,16 @@ const _spawnProcess = (callback) => {
 const _infiniteRun = () => {
 
   if (_spawnedProcess) {
+    console.log('killing spawned process...');
     _spawnedProcess.kill();
+  }
+  if (_timer) {
+    clearTimeout(_timer);
   }
 
   _spawnedProcess = _spawnProcess(() => {
 
-    setTimeout(() => {
+    _timer = setTimeout(() => {
       _infiniteRun();
     }, 10000)
 
@@ -48,7 +53,7 @@ const _infiniteRun = () => {
 
 _infiniteRun();
 
-new CronJob("*/2 * * * *", function () {
+new CronJob("0 */2 * * *", function () {
 
   _infiniteRun();
 

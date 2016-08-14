@@ -14,14 +14,18 @@ class Logger {
   }
 
   info (message, object) {
-    this.log("info", message, object)
+    this._log("info", message, object)
+  }
+
+  warn (message, object) {
+    this._log("warn", message, object)
   }
 
   error (message, object) {
-    this.log("error", message, object)
+    this._log("error", message, object)
   }
 
-  log (level, message, object) {
+  _log (level, message, object) {
     const time = Moment().tz('America/Chicago').format("YYYY-MM-DD hh:mm:ssA ZZ");
 
     if (_debugLevels.indexOf(level) <= _debugLevels.indexOf(_debugLevel)) {

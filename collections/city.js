@@ -4,10 +4,7 @@ const Orm = require('orm');
 
 const DB = require('./db.js');
 
-const {
-  YelpCategory,
-  CategoryList
-} = require('./yelp');
+const {CategoryList} = require('./yelp');
 
 
 class City {

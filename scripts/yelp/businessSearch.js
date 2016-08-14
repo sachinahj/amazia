@@ -4,6 +4,7 @@ const Clone = require('clone');
 const Rx = require('rx');
 
 const LocalConfig = require('../../_config.json');
+const Logger = require('../../collections/logger');
 const {
   Yelp,
   YelpAPI,
@@ -13,6 +14,7 @@ const {
   YelpCategory,
 } = require('../../collections/yelp');
 
+const _logger = new Logger("Scripts Yelp BusinessesSearch");
 
 const BusinessesSearch = (info, callback) => {
   let {
@@ -20,7 +22,7 @@ const BusinessesSearch = (info, callback) => {
     params,
     yelpLogBusinessSearch
   } = info;
-  console.log("businessSearchForCity", params);
+  _logger.info("Starting businessSearchForCity...", info);
   const businessSubject = new Rx.Subject();
   const categorySubject = new Rx.Subject();
   const businessCategorySubject = new Rx.Subject();
@@ -48,7 +50,7 @@ const BusinessesSearch = (info, callback) => {
          return callback && callback(yelpLogBusinessSearch.error,  null);
         });
       }
-      console.log("json.businesses.length", json.businesses.length);
+      _logger.info("json.businesses.length " + json.businesses.length);
       if (!json.businesses.length) {
         yelpLogBusinessSearch.isDone = true;
         yelpLogBusinessSearch.upsert((err) => {
@@ -190,11 +192,14 @@ const BusinessesSearch = (info, callback) => {
 
             if (params) {
 
-              return BusinessesSearch(city, params, undefined, callback);
+              return BusinessesSearch({
+                city,
+                params,
+              }, callback);
 
             } else {
 
-              console.log("done calling back");
+              _logger.info(`Done with ${info.params.categories}! calling back...`);
               return callback && callback();
             }
           });

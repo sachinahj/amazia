@@ -8,7 +8,7 @@ const Rx = require('rx');
 const LocalConfig = require('../_config.json');
 const Logger = require('./logger');
 
-const _logger = new Logger("DB Collection");
+const _logger = new Logger("Collections DB");
 let _DBConnection = null;
 
 class DB {
@@ -108,7 +108,7 @@ class DB {
 
       if (err) {
 
-        _logger.log("warn", "Resetting db connection");
+        _logger.warn("Resetting db connection");
         _DBConnection = null;
         DB.getConnection(callback);
 

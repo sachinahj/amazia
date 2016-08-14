@@ -7,7 +7,7 @@ const LocalConfig = require('../../_config.json');
 const Logger = require('../logger');
 const Yelp = require('./yelp');
 
-const _logger = new Logger("YelpAPI Collection");
+const _logger = new Logger("Collections Yelp YelpAPI");
 
 class YelpAPI extends Yelp {
 
@@ -57,7 +57,7 @@ class YelpAPI extends Yelp {
       } else {
 
         setTimeout(() => {
-          _logger.log("Making retry request....");
+          _logger.warn("Making retry request....");
           Request(requestOptions, this._requestCallback(requestOptions, callback));
         }, 5000);
 

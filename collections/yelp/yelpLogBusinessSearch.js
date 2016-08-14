@@ -64,21 +64,38 @@ class YelpLogBusinessSearch extends Yelp {
     });
   }
 
-  static findLastUpdateCityId(callback) {
+  static findOldestUpdatedCityId(callback) {
     DB.getConnection((err, db) => {
       if (err) return callback && callback(err, null);
 
-      const yelpLogBusinessSearchDBModel = this.getDBModel(db);
-
-      yelpLogBusinessSearchDBModel.find({}).order("isDone").order("-modifiedAt").limit(1).run((err, yelpLogsBusinessSearch) => {
+      db.driver.execQuery(
+      `
+        select c.*
+        from city c
+        left join
+        (
+          select l.id, l.cityId, l.alias, temp.maxModifiedAt
+          from yelpLogBusinessSearch l
+          inner join
+          (
+            select max(modifiedAt) as maxModifiedAt, cityId
+            from yelpLogBusinessSearch l
+            group by l.cityId
+          ) temp
+          on l.cityId = temp.cityId
+          and l.modifiedAt = temp.maxModifiedAt
+          order by temp.maxModifiedAt desc
+        ) temp2
+        on c.id=temp2.cityId
+        order by temp2.maxModifiedAt asc
+        limit 1
+        ;
+      `,
+      (err, cities) => {
         if (err) return callback && callback(err, null);
 
-        let yelpLogBusinessSearch = yelpLogsBusinessSearch[0] || null;
-        if (yelpLogBusinessSearch) {
-          yelpLogBusinessSearch = new YelpLogBusinessSearch(yelpLogBusinessSearch);
-        }
-
-        return callback && callback(null, yelpLogBusinessSearch.cityId);
+        let city = cities[0] || {};
+        return callback && callback(null, city.id);
       });
     });
   }

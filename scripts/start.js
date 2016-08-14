@@ -80,13 +80,12 @@ const _continueFromLog = (city, yelpLogBusinessSearch, callback) => {
 };
 
 const _setCityForced = (city, callback) => {
-  YelpLogBusinessSearch.findLastUpdateCityId((err, cityId) => {
-
-    console.log("cityId", cityId);
-
-    return callback && callback();
-
+  YelpLogBusinessSearch.findOldestUpdatedCityId((err, cityId) => {
     if (err) return callback && callback(err, null);
+
+    if (!cityId) {
+      return callback && callback();
+    }
 
     City.getWithId(cityId, (err, city) => {
       if (err) return callback && callback(err, null);
@@ -108,7 +107,6 @@ const Start = (callback) => {
       city,
       yelpLogBusinessSearch,
     } = info;
-
 
     switch (whatToDo) {
       case '_runCityForced':

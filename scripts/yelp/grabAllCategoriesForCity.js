@@ -4,6 +4,7 @@ const Clone = require('clone');
 const Rx = require('rx');
 
 const LocalConfig = require('../../_config.json');
+const Logger = require('../../collections/logger');
 const BussinessSearch = require('./businessSearch');
 const {
   Yelp,
@@ -13,6 +14,8 @@ const {
   YelpLogBusinessSearch,
   YelpCategory,
 } = require('../../collections/yelp');
+
+const _logger = new Logger("Scripts Yelp grabAllCategoriesForCity");
 
 const _getInitialParams = (city, filteredCategoryIndex) => {
   const filteredCategories = city.getFilteredYelpCategories();
@@ -65,7 +68,7 @@ const _getIntialInfo = (city, yelpLogBusinessSearch) => {
       info.params.offset = yelpLogBusinessSearch.offset || info.params.offset;
 
       if (yelpLogBusinessSearch.isDone) {
-        params.offset += params.limit;
+        info.params.offset += info.params.limit;
       } else {
         info.yelpLogBusinessSearch = yelpLogBusinessSearch;
       }
@@ -88,7 +91,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
   subject.subscribe(
   (info) => {
     info = Clone(info);
-    console.log("info", info);
+    _logger.info("next info", info);
 
     if (info.params) {
 
@@ -96,7 +99,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
         info,
         (err) => {
           if (err) return callback && callback(err, null);
-          console.log(info.params.categories.alias, "done!", info);
+          _logger.info(`${info.params.categories.alias} done!`, info);
 
           info.index += 1;
           info.yelpLogBusinessSearch = undefined;
@@ -113,10 +116,10 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
     }
   },
   (err) => {
-    console.log("err", err);
+    _logger.error("err", err);
   },
   () => {
-    console.log("done");
+    _logger.info("done with all categories");
     return callback && callback();
   });
 
