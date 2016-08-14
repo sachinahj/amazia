@@ -177,6 +177,7 @@ const BusinessesSearch = (info, callback) => {
 
           _upload(toUpsert_businessCategories, err => {
             if (err) return callback && callback(err, null);
+            console.log("WHAAA");
 
             yelpLogBusinessSearch.isDone = true;
             yelpLogBusinessSearch.upsert(err => {
@@ -186,8 +187,8 @@ const BusinessesSearch = (info, callback) => {
 
               if (params) {
 
-                setTimeout(() => {
-                  return BusinessesSearch({
+                return setTimeout(() => {
+                  BusinessesSearch({
                     city,
                     params,
                   }, callback);
