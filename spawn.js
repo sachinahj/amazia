@@ -7,7 +7,7 @@ const Scripts = require('./scripts');
 
 const _logger = new Logger("Spawn");
 
-Scripts.Start((err) => {
+Scripts.Start(err => {
   if (err) _logger.error(err);
   process.exit();
 });

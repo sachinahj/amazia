@@ -97,7 +97,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
 
       BussinessSearch(
         info,
-        (err) => {
+        err => {
           if (err) return callback && callback(err, null);
           _logger.info(`${info.params.categories.alias} done!`, info);
 
@@ -115,7 +115,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
 
     }
   },
-  (err) => {
+  err => {
     _logger.error("err", err);
   },
   () => {

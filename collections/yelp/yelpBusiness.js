@@ -17,9 +17,9 @@ class YelpBusiness extends Yelp {
   upsert(callback) {
     DB.upsert(
       this,
-      this.yelpIdOriginal,
+      this.idOriginal,
       {
-        yelpIdOriginal: this.yelpIdOriginal
+        idOriginal: this.idOriginal
       },
       callback
     );
@@ -29,7 +29,7 @@ class YelpBusiness extends Yelp {
     const yelpBusinessDBModel = db.define("yelpBusiness", {
       id: {type: 'serial', key: true},
       cityId: {type: "number"},
-      yelpIdOriginal: {type: "text"},
+      idOriginal: {type: "text"},
       name: {type: "text"},
       rating: {type: "number"},
       reviewCount: {type: "number"},
@@ -53,7 +53,7 @@ class YelpBusiness extends Yelp {
 }
 
 YelpBusiness.className = 'YelpBusiness';
-YelpBusiness.displayProperty = 'yelpIdOriginal';
+YelpBusiness.displayProperty = 'idOriginal';
 
 module.exports = YelpBusiness;
 

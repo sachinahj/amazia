@@ -7,7 +7,7 @@ const {YelpLogBusinessSearch} = require('../collections/yelp');
 
 const _logger = new Logger("Start");
 
-const _whatToDo = (callback) => {
+const _whatToDo = callback => {
   City.needsForcedYelpBusinessSearch((err, city) => {
     if (err) return callback && callback(err, null);
 
@@ -69,7 +69,7 @@ const _whatToDo = (callback) => {
 
 const _runCityForced = (city, callback) => {
   city.forceYelpBusinessSearch = false;
-  city.upsert((err) => {
+  city.upsert(err => {
     if (err) return callback && callback(err, null);
     Scripts.Yelp.GrabAllCategoriesForCity(city, undefined, callback);
   });
@@ -96,7 +96,7 @@ const _setCityForced = (city, callback) => {
   });
 };
 
-const Start = (callback) => {
+const Start = callback => {
   _logger.info("Starting...")
 
   _whatToDo((err, info) => {

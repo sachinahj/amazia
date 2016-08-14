@@ -1,5 +1,6 @@
 'use strict'
 
+const _ = require('lodash');
 const Clone = require('clone');
 const Rx = require('rx');
 
@@ -17,17 +18,15 @@ const {
 const _logger = new Logger("Scripts Yelp BusinessesSearch");
 
 const BusinessesSearch = (info, callback) => {
+  _logger.info("Starting businessSearchForCity...", info);
+
   let {
     city,
     params,
     yelpLogBusinessSearch
   } = info;
-  _logger.info("Starting businessSearchForCity...", info);
-  const businessSubject = new Rx.Subject();
-  const categorySubject = new Rx.Subject();
-  const businessCategorySubject = new Rx.Subject();
+  let totalBusinesses;
 
-  let totalRecords;
   if (!yelpLogBusinessSearch) {
     yelpLogBusinessSearch = new YelpLogBusinessSearch({
       cityId: city.id,
@@ -39,36 +38,78 @@ const BusinessesSearch = (info, callback) => {
     });
   }
 
-  yelpLogBusinessSearch.upsert((err) => {
+  const _upload = (uploadArray, callback) => {
+    const observables = [];
+
+    uploadArray.forEach((obj, index) => {
+      const obsFn = Rx.Observable.fromNodeCallback(function (callback) {
+        obj.upsert(callback)
+      });
+      const obs = obsFn();
+      observables.push(obs);
+    });
+
+    Rx.Observable
+    .from(observables)
+    .concatAll()
+    .toArray()
+    .subscribe(results => {
+      return callback && callback();
+    },
+    err => {
+      return callback && callback(err);
+    });
+  }
+
+  const _getNewParams = (params) => {
+    params.offset += (params.limit || 20);
+    const maxRecords = totalBusinesses > 1000 ? 1000 : totalBusinesses;
+    if (maxRecords - 1 > params.offset) {
+      return params;
+    }
+    return null;
+  };
+
+  yelpLogBusinessSearch.upsert(err => {
     if (err) return callback && callback(err, null);
 
     YelpAPI.businessSearch(params, function (err, json) {
       if (err) {
         yelpLogBusinessSearch.error = err;
-        yelpLogBusinessSearch.upsert((err) => {
+        yelpLogBusinessSearch.upsert(err => {
           if (err) return callback && callback(err, null);
          return callback && callback(yelpLogBusinessSearch.error,  null);
         });
       }
-      _logger.info("json.businesses.length " + json.businesses.length);
+
+      json.businesses = json.businesses;
+      totalBusinesses = json.total;
+      _logger.info("json.businesses.length: " + json.businesses.length);
+      _logger.info("totalBusinesses: " + totalBusinesses);
+
       if (!json.businesses.length) {
         yelpLogBusinessSearch.isDone = true;
-        yelpLogBusinessSearch.upsert((err) => {
+        yelpLogBusinessSearch.upsert(err => {
           if (err) return callback && callback(err, null);
           return callback && callback();
         });
-     }
+      }
 
-      totalRecords = json.total;
 
-      json.businesses.forEach((businessRaw, idx, array) => {
+      let toUpsert_businesses = [];
+      let toUpsert_categories = [];
+      let toUpsert_businessCategoryInfos = [];
+      let toUpsert_businessCategories = [];
+
+
+      json.businesses.forEach(businessRaw => {
 
         let price = businessRaw.price;
         price = price ? price.length : null;
 
         const businessData = {
           cityId: city.id,
-          yelpIdOriginal: businessRaw.id,
+          idOriginal: businessRaw.id,
           name: businessRaw.name,
           rating: businessRaw.rating,
           reviewCount: businessRaw.review_count,
@@ -82,131 +123,196 @@ const BusinessesSearch = (info, callback) => {
         };
 
         const business = new YelpBusiness(businessData);
+        toUpsert_businesses.push(business);
 
-        const businessInfo = {
-          business,
-          businessRaw,
-        }
+        businessRaw.categories.forEach(categoryRaw => {
 
-        if (idx === array.length - 1) {
-          businessInfo.isLastBusiness = true;
-        }
-
-        businessSubject.onNext(businessInfo);
-
-        if (idx === array.length - 1) {
-          businessSubject.onCompleted();
-        }
-      });
-    });
-  });
-
-  businessSubject.forEach(
-    (businessInfo) => {
-      businessInfo = Clone(businessInfo);
-      businessInfo.business.upsert((err) => {
-        if (err) return callback && callback(err, null);
-
-        businessInfo.businessRaw.categories.forEach((categoryRaw, idx, array) => {
           const categoryData = {
             alias: categoryRaw.alias,
             title: categoryRaw.title,
           };
 
           const category = new YelpCategory(categoryData);
-          businessInfo.category = category;
+          toUpsert_categories.push(category);
 
-          if (
-            businessInfo.isLastBusiness &&
-            idx === array.length - 1
-          ) {
-            businessInfo.isLastCategory = true;
-          }
-
-          categorySubject.onNext(businessInfo);
-
-          if (
-            businessInfo.isLastBusiness &&
-            idx === array.length - 1
-          ) {
-            categorySubject.onCompleted();
-          }
+          const businessCategoryInfo = {
+            businessIdOriginal: businessData.idOriginal,
+            categoryAlias: categoryData.alias,
+          };
+          toUpsert_businessCategoryInfos.push(businessCategoryInfo);
         });
       });
-    }
-  );
 
-  categorySubject.forEach(
-    (businessInfo) => {
-      businessInfo = Clone(businessInfo);
 
-      businessInfo.category.upsert((err) => {
+      console.log('toUpsert_businessCategoryInfos.length', toUpsert_businessCategoryInfos.length);
+
+      toUpsert_businesses = _.uniqWith(toUpsert_businesses, _.isEqual);
+      toUpsert_categories = _.uniqWith(toUpsert_categories, _.isEqual);
+
+      _upload(toUpsert_businesses, err => {
         if (err) return callback && callback(err, null);
 
-        const businessCategoryData = {
-          businessId: businessInfo.business.id,
-          categoryId: businessInfo.category.id,
-        }
+        _upload(toUpsert_categories, err => {
+          if (err) return callback && callback(err, null);
 
-        const businessCategory = new YelpBusinessCategory(businessCategoryData);
-        businessInfo.businessCategory = businessCategory;
+          const idMapBusiness = {};
+          const idMapCategory = {};
 
-        if (
-          businessInfo.isLastBusiness &&
-          businessInfo.isLastCategory
-        ) {
-          businessInfo.isLastBusinessCategory = true;
-        }
+          toUpsert_businesses.forEach(business => {
+            idMapBusiness[business.idOriginal] = business.id;
+          });
 
-        businessCategorySubject.onNext(businessInfo);
-      });
-    }
-  );
+          toUpsert_categories.forEach(category => {
+            idMapCategory[category.alias] = category.id;
+          });
 
-  const _getNewParams = (params) => {
-    params.offset += (params.limit || 20);
-    const maxRecords = totalRecords > 1000 ? 1000 : totalRecords;
-    if (maxRecords - 1 > params.offset) {
-      return params;
-    }
-    return null;
-  };
+          toUpsert_businessCategoryInfos.forEach(businessCategoryInfo => {
+            const businessCategoryData = {
+              businessId: idMapBusiness[businessCategoryInfo.businessIdOriginal],
+              categoryId: idMapCategory[businessCategoryInfo.categoryAlias],
+            };
+            const businessCategory = new YelpBusinessCategory(businessCategoryData);
+            toUpsert_businessCategories.push(businessCategory);
+          });
 
-  businessCategorySubject.forEach(
-    (businessInfo) => {
-      businessInfo = Clone(businessInfo);
-
-      businessInfo.businessCategory.upsert((err) => {
-        if (err) return callback && callback(err, null);
-
-
-        if (businessInfo.isLastBusinessCategory) {
-          businessCategorySubject.onCompleted();
-
-          yelpLogBusinessSearch.isDone = true;
-          yelpLogBusinessSearch.upsert((err) => {
+          _upload(toUpsert_businessCategories, err => {
             if (err) return callback && callback(err, null);
 
+            yelpLogBusinessSearch.isDone = true;
+            yelpLogBusinessSearch.upsert(err => {
+              if (err) return callback && callback(err, null);
 
-            params = _getNewParams(params);
+              params = _getNewParams(params);
 
-            if (params) {
+              if (params) {
 
-              // return BusinessesSearch({
-              //   city,
-              //   params,
-              // }, callback);
+                setTimeout(() => {
+                  return BusinessesSearch({
+                    city,
+                    params,
+                  }, callback);
+                }, 1000);
 
-            } else {
+              } else {
 
-              _logger.info(`Done with ${info.params.categories}! calling back...`);
-              return callback && callback();
-            }
+                _logger.info(`Done with ${info.params.categories}! calling back...`);
+                return callback && callback();
+              }
+            });
           });
-        }
+        });
       });
-    }
-  );
+    });
+  });
+
+
+
+  // businessSubject.forEach(
+  //   (businessInfo) => {
+  //     businessInfo = Clone(businessInfo);
+  //     businessInfo.business.upsert(err => {
+  //       if (err) return callback && callback(err, null);
+
+  //       businessInfo.businessRaw.categories.forEach((categoryRaw, idx, array) => {
+  //         const categoryData = {
+  //           alias: categoryRaw.alias,
+  //           title: categoryRaw.title,
+  //         };
+
+  //         const category = new YelpCategory(categoryData);
+  //         businessInfo.category = category;
+
+  //         if (
+  //           businessInfo.isLastBusiness &&
+  //           idx === array.length - 1
+  //         ) {
+  //           businessInfo.isLastCategory = true;
+  //         }
+
+  //         categorySubject.onNext(businessInfo);
+
+  //         if (
+  //           businessInfo.isLastBusiness &&
+  //           idx === array.length - 1
+  //         ) {
+  //           categorySubject.onCompleted();
+  //         }
+  //       });
+  //     });
+  //   }
+  // );
+
+  // categorySubject.forEach(
+  //   (businessInfo) => {
+  //     businessInfo = Clone(businessInfo);
+
+  //     businessInfo.category.upsert(err => {
+  //       if (err) return callback && callback(err, null);
+
+  //       const businessCategoryData = {
+  //         businessId: businessInfo.business.id,
+  //         categoryId: businessInfo.category.id,
+  //       }
+
+  //       const businessCategory = new YelpBusinessCategory(businessCategoryData);
+  //       businessInfo.businessCategory = businessCategory;
+
+  //       if (
+  //         businessInfo.isLastBusiness &&
+  //         businessInfo.isLastCategory
+  //       ) {
+  //         businessInfo.isLastBusinessCategory = true;
+  //       }
+
+  //       businessCategorySubject.onNext(businessInfo);
+  //     });
+  //   }
+  // );
+
+  // const _getNewParams = (params) => {
+  //   params.offset += (params.limit || 20);
+  //   const maxRecords = totalBusinesses > 1000 ? 1000 : totalBusinesses;
+  //   if (maxRecords - 1 > params.offset) {
+  //     return params;
+  //   }
+  //   return null;
+  // };
+
+  // businessCategorySubject.forEach(
+  //   (businessInfo) => {
+  //     businessInfo = Clone(businessInfo);
+
+  //     businessInfo.businessCategory.upsert(err => {
+  //       if (err) return callback && callback(err, null);
+
+
+  //       if (businessInfo.isLastBusinessCategory) {
+  //         businessCategorySubject.onCompleted();
+
+  //         yelpLogBusinessSearch.isDone = true;
+  //         yelpLogBusinessSearch.upsert(err => {
+  //           if (err) return callback && callback(err, null);
+
+
+  //           params = _getNewParams(params);
+
+  //           if (params) {
+
+  //             // return BusinessesSearch({
+  //             //   city,
+  //             //   params,
+  //             // }, callback);
+
+  //           } else {
+
+  //             _logger.info(`Done with ${info.params.categories}! calling back...`);
+  //             return callback && callback();
+  //           }
+  //         });
+  //       }
+  //     });
+  //   }
+  // );
 
 
 }

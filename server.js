@@ -12,7 +12,7 @@ const folderPath = Path.dirname(require.main.filename);
 let _spawnedProcess = null;
 let _timer = null;
 
-const _spawnProcess = (callback) => {
+const _spawnProcess = callback => {
   const spawnedProcess = Spawn('nice', ['-n', '15', 'node', folderPath + '/spawn.js']);
 
   spawnedProcess.stdout.on('data', function (data) {
