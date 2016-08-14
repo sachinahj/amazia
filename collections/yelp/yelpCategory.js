@@ -17,13 +17,9 @@ class YelpCategory extends Yelp {
   upsert(callback) {
     DB.upsert(
       this,
-      (this.id || this.alias),
+      this.alias,
       {
-        or: [{
-          id: this.id
-        }, {
-          alias: this.alias
-        }]
+        alias: this.alias
       },
       callback
     );

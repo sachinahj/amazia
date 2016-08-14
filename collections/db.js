@@ -16,18 +16,26 @@ class DB {
   static upsert (self, toSave, findQuery, callback) {
     DB.getConnection((err, db) => {
       const DBModel = self.constructor.getDBModel(db);
-      if (toSave) {
-        DB.save(self, findQuery, DBModel, callback);
+      if (self.id) {
+        DB._update(self, findQuery, DBModel, callback);
+      } else if (toSave && findQuery) {
+        DB._save(self, findQuery, DBModel, callback);
       } else {
-        DB.create(self, DBModel, callback);
+        DB._create(self, findQuery, DBModel, callback);
       }
     });
   }
 
-  static save (self, findQuery, DBModel, callback) {
-    DBModel.one(findQuery, (err, row) => {
+  static _update(self, findQuery, DBModel, callback) {
+    DBModel.one({id: self.id}, (err, row) => {
       if (err) return callback && callback(err, null);
-      if (!row) return DB.create(self, DBModel, callback);
+      if (!row) {
+        if (toSave && findQuery) {
+          return DB._save(self, findQuery, DBModel, callback);
+        } else {
+          return DB._create(self, findQuery, DBModel, callback);
+        }
+      }
 
       for (let key in self) {
         row[key] = self[key];
@@ -46,7 +54,29 @@ class DB {
     });
   }
 
-  static create (self, DBModel, callback) {
+  static _save (self, findQuery, DBModel, callback) {
+    DBModel.one(findQuery, (err, row) => {
+      if (err) return callback && callback(err, null);
+      if (!row) return DB._create(self, findQuery, DBModel, callback);
+
+      for (let key in self) {
+        row[key] = self[key];
+      }
+
+      row.save((err, results) => {
+        if (err) return callback && callback(err, null);
+
+        for (let key in results) {
+          self[key] = results[key];
+        }
+
+        _logger.info(`${self.constructor.className} | done saving ${self[self.constructor.displayProperty]}`);
+        return callback && callback(null);
+      });
+    });
+  }
+
+  static _create (self, findQuery, DBModel, callback) {
     DBModel.create(self, (err, results) => {
       if (err) return callback && callback(err, null);
 

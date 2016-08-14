@@ -17,13 +17,9 @@ class YelpBusiness extends Yelp {
   upsert(callback) {
     DB.upsert(
       this,
-      (this.id || this.yelpIdOriginal),
+      this.yelpIdOriginal,
       {
-        or: [{
-          id: this.id
-        }, {
-          yelpIdOriginal: this.yelpIdOriginal
-        }]
+        yelpIdOriginal: this.yelpIdOriginal
       },
       callback
     );

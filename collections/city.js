@@ -18,18 +18,14 @@ class City {
   upsert(callback) {
     DB.upsert(
       this,
-      (this.id || (this.name && this.state && this.country)),
+      (this.name && this.state && this.country),
       {
-        or: [{
-          id: this.id
+        and: [{
+          name: this.name
         }, {
-          and: [{
-            name: this.name
-          }, {
-            state: this.state
-          }, {
-            country: this.country
-          }]
+          state: this.state
+        }, {
+          country: this.country
         }]
       },
       callback

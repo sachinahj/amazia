@@ -192,10 +192,10 @@ const BusinessesSearch = (info, callback) => {
 
             if (params) {
 
-              return BusinessesSearch({
-                city,
-                params,
-              }, callback);
+              // return BusinessesSearch({
+              //   city,
+              //   params,
+              // }, callback);
 
             } else {
 

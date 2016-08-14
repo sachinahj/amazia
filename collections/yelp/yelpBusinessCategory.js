@@ -17,16 +17,12 @@ class YelpBusinessCategory extends Yelp {
   upsert(callback) {
     DB.upsert(
       this,
-      (this.id || (this.businessId && this.categoryId)),
+      (this.businessId && this.categoryId),
       {
-        or: [{
-          id: this.id
+        and: [{
+          businessId: this.businessId
         }, {
-          and: [{
-            businessId: this.businessId
-          }, {
-            categoryId: this.categoryId
-          }]
+          categoryId: this.categoryId
         }]
       },
       callback

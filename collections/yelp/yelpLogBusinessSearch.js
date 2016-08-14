@@ -17,10 +17,8 @@ class YelpLogBusinessSearch extends Yelp {
   upsert(callback) {
     DB.upsert(
       this,
-      this.id,
-      {
-        id: this.id
-      },
+      null,
+      null,
       callback
     );
   }
