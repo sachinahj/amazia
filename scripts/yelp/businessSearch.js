@@ -191,7 +191,7 @@ const BusinessesSearch = (info, callback) => {
                     city,
                     params,
                   }, callback);
-                }, 1000);
+                }, 3000);
 
               } else {
 
