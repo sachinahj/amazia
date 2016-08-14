@@ -76,7 +76,7 @@ const BusinessesSearch = (info, callback) => {
     YelpAPI.businessSearch(params, function (err, json) {
       if (err) {
         yelpLogBusinessSearch.error = err;
-        yelpLogBusinessSearch.upsert(err => {
+        return yelpLogBusinessSearch.upsert(err => {
           if (err) return callback && callback(err, null);
          return callback && callback(yelpLogBusinessSearch.error,  null);
         });
@@ -89,7 +89,7 @@ const BusinessesSearch = (info, callback) => {
 
       if (!json.businesses.length) {
         yelpLogBusinessSearch.isDone = true;
-        yelpLogBusinessSearch.upsert(err => {
+        return yelpLogBusinessSearch.upsert(err => {
           if (err) return callback && callback(err, null);
           return callback && callback();
         });
@@ -177,7 +177,6 @@ const BusinessesSearch = (info, callback) => {
 
           _upload(toUpsert_businessCategories, err => {
             if (err) return callback && callback(err, null);
-            console.log("WHAAA");
 
             yelpLogBusinessSearch.isDone = true;
             yelpLogBusinessSearch.upsert(err => {
@@ -187,12 +186,10 @@ const BusinessesSearch = (info, callback) => {
 
               if (params) {
 
-                return setTimeout(() => {
                   BusinessesSearch({
                     city,
                     params,
                   }, callback);
-                }, 3000);
 
               } else {
 
