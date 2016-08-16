@@ -25,7 +25,7 @@ const _getInitialParams = (city, filteredCategoryIndex) => {
     return {
       location: `${city.name},${city.state}`,
       sort_by: 'rating',
-      limit: 50,
+      limit: 20,
       offset: 0,
       categories: filteredCategories[filteredCategoryIndex].alias,
     };
