@@ -25,7 +25,6 @@ const BusinessesSearch = (info, callback) => {
     params,
     yelpLogBusinessSearch
   } = info;
-  let totalBusinesses;
 
   if (!yelpLogBusinessSearch) {
     yelpLogBusinessSearch = new YelpLogBusinessSearch({
@@ -63,8 +62,7 @@ const BusinessesSearch = (info, callback) => {
 
   const _getNewParams = (params) => {
     params.offset += (params.limit || 20);
-    const maxRecords = totalBusinesses > 1000 ? 1000 : totalBusinesses;
-    if (maxRecords - 1 > params.offset) {
+    if (999 > params.offset) {
       return params;
     }
     return null;
@@ -83,9 +81,7 @@ const BusinessesSearch = (info, callback) => {
       }
 
       json.businesses = json.businesses;
-      totalBusinesses = json.total;
       _logger.info("json.businesses.length: " + json.businesses.length);
-      _logger.info("totalBusinesses: " + totalBusinesses);
 
       if (!json.businesses.length) {
         yelpLogBusinessSearch.isDone = true;
@@ -94,7 +90,6 @@ const BusinessesSearch = (info, callback) => {
           return callback && callback();
         });
       }
-
 
       let toUpsert_businesses = [];
       let toUpsert_categories = [];
