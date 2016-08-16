@@ -25,6 +25,7 @@ const BusinessesSearch = (info, callback) => {
     params,
     yelpLogBusinessSearch
   } = info;
+  let totalBusinesses;
 
   if (!yelpLogBusinessSearch) {
     yelpLogBusinessSearch = new YelpLogBusinessSearch({
@@ -80,7 +81,6 @@ const BusinessesSearch = (info, callback) => {
         });
       }
 
-      json.businesses = json.businesses;
       _logger.info("json.businesses.length: " + json.businesses.length);
 
       if (!json.businesses.length) {
@@ -179,17 +179,17 @@ const BusinessesSearch = (info, callback) => {
 
               params = _getNewParams(params);
 
-              if (params) {
-
-                  BusinessesSearch({
-                    city,
-                    params,
-                  }, callback);
-
-              } else {
+              if (!params || toUpsert_businesses.length < params.limit) {
 
                 _logger.info(`Done with ${info.params.categories}! calling back...`);
                 return callback && callback();
+
+              } else {
+
+                return BusinessesSearch({
+                  city,
+                  params,
+                }, callback);
               }
             });
           });
