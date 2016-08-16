@@ -139,8 +139,6 @@ const BusinessesSearch = (info, callback) => {
       });
 
 
-      console.log('toUpsert_businessCategoryInfos.length', toUpsert_businessCategoryInfos.length);
-
       toUpsert_businesses = _.uniqWith(toUpsert_businesses, _.isEqual);
       toUpsert_categories = _.uniqWith(toUpsert_categories, _.isEqual);
 
