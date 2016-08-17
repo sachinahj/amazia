@@ -74,7 +74,7 @@ const BusinessesSearch = (info, callback) => {
 
     YelpAPI.businessSearch(params, function (err, json) {
       if (err) {
-        yelpLogBusinessSearch.error = err;
+        yelpLogBusinessSearch.error = err.code;
         return yelpLogBusinessSearch.upsert(err => {
           if (err) return callback && callback(err, null);
          return callback && callback(yelpLogBusinessSearch.error,  null);

@@ -1,19 +1,18 @@
 'use strict'
 
 const CronJob = require('cron').CronJob;
+const Logger = require('./collections/logger');
 const Moment = require('moment-timezone');
 const Path = require('path');
 const Spawn = require('child_process').spawn;
 
 const DB = require('./collections/db')
 
-const folderPath = Path.dirname(require.main.filename);
-
-let _spawnedProcess = null;
-let _timer = null;
+const _logger = new Logger("Server");
+const _folderPath = Path.dirname(require.main.filename);
 
 const _spawnProcess = callback => {
-  const spawnedProcess = Spawn('nice', ['-n', '15', 'node', folderPath + '/spawn.js']);
+  const spawnedProcess = Spawn('nice', ['-n', '15', 'node', _folderPath + '/spawn.js']);
 
   spawnedProcess.stdout.on('data', function (data) {
     console.log(data.toString());
@@ -31,23 +30,24 @@ const _spawnProcess = callback => {
   return spawnedProcess;
 };
 
+let _spawnedProcess = null;
+let _timer = null;
+
 const _infiniteRun = () => {
 
   if (_spawnedProcess) {
-    console.log('killing spawned process...');
+    _logger.info('killing spawned process...');
     _spawnedProcess.kill();
   }
-  if (_timer) {
-    clearTimeout(_timer);
-  }
 
+  _logger.info('spawning new');
   _spawnedProcess = _spawnProcess(() => {
-
-    _timer = setTimeout(() => {
+    setTimeout(() => {
+      _spawnedProcess = null;
       _infiniteRun();
     }, 10000)
-
   });
+
 };
 
 
