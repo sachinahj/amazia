@@ -48,7 +48,7 @@ class DB {
           self[key] = results[key];
         }
 
-        _logger.info(`${self.constructor.className} | done updating ${self[self.constructor.displayProperty]}`);
+        _logger.extra(`${self.constructor.className} | done updating ${self[self.constructor.displayProperty]}`);
         return callback && callback(null);
       });
     });
@@ -70,7 +70,7 @@ class DB {
           self[key] = results[key];
         }
 
-        _logger.info(`${self.constructor.className} | done saving ${self[self.constructor.displayProperty]}`);
+        _logger.extra(`${self.constructor.className} | done saving ${self[self.constructor.displayProperty]}`);
         return callback && callback(null);
       });
     });
@@ -84,7 +84,7 @@ class DB {
         self[key] = results[key];
       }
 
-      _logger.info(`${self.constructor.className} | done creating  ${self[self.constructor.displayProperty]}`);
+      _logger.extra(`${self.constructor.className} | done creating  ${self[self.constructor.displayProperty]}`);
       return callback && callback(null);
     });
   }

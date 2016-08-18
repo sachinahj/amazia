@@ -5,13 +5,18 @@ const Moment = require('moment-timezone');
 const LocalConfig = require('../_config.json');
 
 const _debugLevel = LocalConfig.logger.level || 'info';
-const _debugLevels = ['error', 'warn', 'info'];
+const _debugLevels = ['error', 'warn', 'info', 'extra'];
 
 class Logger {
 
   constructor(name) {
     this.name = name || "No Name"
   }
+
+  extra (message, object) {
+    this._log("extra", message, object)
+  }
+
 
   info (message, object) {
     this._log("info", message, object)

@@ -144,9 +144,11 @@ const BusinessesSearch = (info, callback) => {
 
       _upload(toUpsert_businesses, err => {
         if (err) return callback && callback(err, null);
+        _logger.info("done saving all businesses: " + toUpsert_businesses.length);
 
         _upload(toUpsert_categories, err => {
           if (err) return callback && callback(err, null);
+        _logger.info("done saving all categories: " + toUpsert_categories.length);
 
           const idMapBusiness = {};
           const idMapCategory = {};
@@ -170,6 +172,7 @@ const BusinessesSearch = (info, callback) => {
 
           _upload(toUpsert_businessCategories, err => {
             if (err) return callback && callback(err, null);
+            _logger.info("done saving all businessCategories: " + toUpsert_businessCategories.length);
 
             yelpLogBusinessSearch.isDone = true;
             yelpLogBusinessSearch.upsert(err => {

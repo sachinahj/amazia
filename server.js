@@ -31,21 +31,14 @@ const _spawnProcess = callback => {
 };
 
 let _spawnedProcess = null;
-let _timer = null;
 
 const _infiniteRun = () => {
 
-  if (_spawnedProcess) {
-    _logger.info('killing spawned process...');
-    _spawnedProcess.kill();
-  }
-
-  _logger.info('spawning new');
+  _logger.info('spawning new _spawnProcess');
   _spawnedProcess = _spawnProcess(() => {
-    setTimeout(() => {
-      _spawnedProcess = null;
-      _infiniteRun();
-    }, 10000)
+    _logger.info("_spawnProcess close callback");
+    _spawnedProcess = null;
+    _infiniteRun();
   });
 
 };
@@ -53,9 +46,15 @@ const _infiniteRun = () => {
 
 _infiniteRun();
 
-new CronJob("0 */2 * * *", function () {
+new CronJob("*/5 * * * *", function () {
 
-  _infiniteRun();
+  if (_spawnedProcess) {
+    _logger.info('killing spawned process...');
+    _spawnedProcess.kill();
+    _spawnedProcess = null;
+  }
+
+  // _infiniteRun();
 
 }, function () {}, true, 'America/Chicago');
 
