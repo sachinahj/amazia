@@ -80,12 +80,12 @@ class YelpLogBusinessSearch extends Yelp {
             from yelpLogBusinessSearch l
             group by l.cityId
           ) temp
-          on l.cityId = temp.cityId
-          and l.modifiedAt = temp.maxModifiedAt
+          on l.cityId = temp.cityId and l.modifiedAt = temp.maxModifiedAt
+          group by l.cityId
           order by temp.maxModifiedAt desc
         ) temp2
         on c.id=temp2.cityId
-        order by temp2.maxModifiedAt asc
+        order by temp2.maxModifiedAt asc, id asc
         limit 1
         ;
       `,
