@@ -23,7 +23,7 @@ const _getInitialParams = (city, filteredCategoryIndex) => {
   if (filteredCategoryIndex <= filteredCategories.length - 1) {
 
     return {
-      location: `${city.name},${city.state}`,
+      location: `${city.name},${city.state},${city.country}`,
       sort_by: 'rating',
       limit: 20,
       offset: 0,
