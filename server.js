@@ -46,7 +46,7 @@ const _infiniteRun = () => {
 
 _infiniteRun();
 
-new CronJob("*/5 * * * *", function () {
+new CronJob("0 */2 * * *", function () {
 
   if (_spawnedProcess) {
     _logger.info('killing spawned process...');
