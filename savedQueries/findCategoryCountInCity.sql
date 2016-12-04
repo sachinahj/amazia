@@ -15,12 +15,12 @@ order by count desc
 ;
 
 
-select b.cityId, yc.alias, yct.level4, yct.level1, count(yct.level1) as count
+select b.cityId, yc.alias, yct.aliasLevel4, yct.aliasLevel1, count(yct.aliasLevel1) as count
 from yelpBusiness b
 join yelpBusinessCategory bc on b.id=bc.businessId
 join yelpCategory yc on yc.id=bc.categoryId
-join yelpCategoryTree yct on yct.level4=yc.alias
+join yelpCategoryTree yct on yct.aliasLevel4=yc.alias
 where b.cityId=1
-group by yct.level1
+group by yct.aliasLevel1
 order by count desc
 ;

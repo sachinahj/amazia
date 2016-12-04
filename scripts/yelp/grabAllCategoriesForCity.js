@@ -131,7 +131,7 @@ const GrabAllCategoriesForCity = (city, yelpLogBusinessSearch, callback) => {
     return callback && callback(`bad initialInfo: ${yelpLogBusinessSearch.alias} and ${city.name}`, null);
   }
 
-}
+};
 
 
 
