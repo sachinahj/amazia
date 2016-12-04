@@ -659,7 +659,10 @@
                 "skateshops",
                 "skishops",
                 {
-                    "alias": "sportswear"
+                    "alias": "sportswear",
+                    "children": [
+                        "dancewear"
+                    ]
                 }
             ]
         },
@@ -1549,7 +1552,10 @@
         "theater",
         "ticketsales",
         {
-            "alias": "wineries"
+            "alias": "wineries",
+            "children": [
+                "winetastingroom"
+            ]
         }
     ],
     "homeservices": [
@@ -1710,7 +1716,15 @@
         "golfcartrentals",
         "hennaartists",
         {
-            "alias": "hotels"
+            "alias": "hotels",
+            "children": [
+                "agriturismi",
+                "mountainhuts",
+                "pensions",
+                "residences",
+                "reststops",
+                "ryokan"
+            ]
         },
         "magicians",
         "mohels",
