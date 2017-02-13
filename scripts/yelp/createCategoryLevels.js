@@ -12,6 +12,8 @@ const {
 
 const _logger = new Logger("Scripts Yelp createCategoryLevels");
 
+console.log("CategoryList.length", CategoryList.length);
+
 
 const createAllParentsFlat = (categoryList) => {
   const allParentsFlat = {};
@@ -41,6 +43,8 @@ const createCategoryTree = (categoryTree) => {
       }
     }
   }
+
+  console.log("categoriesFound sachin", categoriesFound);
 
   var index = categoriesFound.length;
   while (index--) {
